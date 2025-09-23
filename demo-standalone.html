@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TableEditor - Standalone Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .demo-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .api-demo {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .api-demo h4 {
+            margin-top: 0;
+            color: #495057;
+        }
+
+        button {
+            margin: 5px;
+            padding: 8px 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        pre {
+            background: #1e1e1e;
+            color: #ffffff;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+
+        .code {
+            color: #e6db74;
+        }
+
+        #editor-container {
+            min-height: 400px;
+            margin: 20px 0;
+        }
+
+        #editor-container-2 {
+            min-height: 300px;
+            margin: 20px 0;
+        }
+
+        .instructions {
+            background: #e7f3ff;
+            border: 1px solid #b3d7ff;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .instructions h4 {
+            margin-top: 0;
+            color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-header">
+        <h1>🔧 TableEditor - Standalone JavaScript Library</h1>
+        <p>A complete table editor that generates all HTML/CSS dynamically</p>
+    </div>
+
+    <div class="demo-container">
+        <h2>Features</h2>
+        <ul>
+            <li><strong>Pure JavaScript</strong> - No HTML/CSS dependencies</li>
+            <li><strong>Dashed Border Selection</strong> - See formatting while applying it</li>
+            <li><strong>Full Context Menu</strong> - All operations accessible via right-click</li>
+            <li><strong>Resizable Columns/Rows</strong> - Drag to resize with visual feedback</li>
+            <li><strong>Cell Merging/Splitting</strong> - Horizontal, vertical, and rectangular merging</li>
+            <li><strong>Rich Formatting</strong> - Alignment, font size, colors</li>
+            <li><strong>Table Splitting</strong> - Split tables with header repetition</li>
+            <li><strong>Multiple Instances</strong> - Run multiple editors on the same page</li>
+            <li><strong>Export/Import</strong> - Get/set table data programmatically</li>
+        </ul>
+    </div>
+
+    <div class="demo-container">
+        <h2>Basic Usage</h2>
+        <div class="instructions">
+            <h4>How to Use:</h4>
+            <ol>
+                <li>Right-click any cell to open context menu</li>
+                <li>Use Ctrl/Cmd + click to select multiple cells</li>
+                <li>Hover over cell edges to see resize handles</li>
+                <li>Drag handles to resize columns and rows</li>
+                <li>All formatting preserves original cell backgrounds</li>
+            </ol>
+        </div>
+
+        <div id="editor-container"></div>
+
+        <div class="api-demo">
+            <h4>API Demonstration</h4>
+            <button onclick="addRowToEditor()">Add Row</button>
+            <button onclick="addColumnToEditor()">Add Column</button>
+            <button onclick="getTableData()">Get Table Data</button>
+            <button onclick="loadSampleData()">Load Sample Data</button>
+            <button onclick="destroyEditor()">Destroy Editor</button>
+            <button onclick="recreateEditor()">Recreate Editor</button>
+        </div>
+
+        <pre id="output-area">// Table data will appear here when you click "Get Table Data"</pre>
+    </div>
+
+    <div class="demo-container">
+        <h2>Multiple Instances</h2>
+        <p>You can create multiple table editors on the same page:</p>
+
+        <div id="editor-container-2"></div>
+
+        <div class="api-demo">
+            <h4>Second Editor Controls</h4>
+            <button onclick="createSmallTable()">Create Small Table</button>
+            <button onclick="createLargeTable()">Create Large Table</button>
+        </div>
+    </div>
+
+    <div class="demo-container">
+        <h2>Code Example</h2>
+
+        <h3>Basic Initialization</h3>
+        <pre><code class="code">// Create a table editor in any container
+const editor = new TableEditor('#my-container', {
+    initialRows: 3,
+    initialCols: 4,
+    showHeaders: true
+});
+
+// Or with DOM element
+const container = document.getElementById('my-container');
+const editor = new TableEditor(container);
+</code></pre>
+
+        <h3>API Methods</h3>
+        <pre><code class="code">// Get table data
+const data = editor.getTableData();
+
+// Set table data
+editor.setTableData(data);
+
+// Add rows/columns programmatically
+editor.addRow();
+editor.addColumn();
+
+// Clean up
+editor.destroy();
+</code></pre>
+
+        <h3>Table Data Format</h3>
+        <pre><code class="code">// Data structure returned by getTableData()
+[
+    [
+        {
+            content: "Header 1",
+            styles: {
+                textAlign: "center",
+                fontSize: "16px",
+                backgroundColor: "#f0f0f0",
+                color: "#333"
+            },
+            rowSpan: 1,
+            colSpan: 1
+        },
+        // ... more cells
+    ],
+    // ... more rows
+]
+</code></pre>
+    </div>
+
+    <script src="table-editor-standalone.js"></script>
+    <script>
+        let editor1, editor2;
+
+        // Initialize the first editor
+        function initializeEditors() {
+            editor1 = new TableEditor('#editor-container', {
+                initialRows: 3,
+                initialCols: 4,
+                showHeaders: true
+            });
+
+            editor2 = new TableEditor('#editor-container-2', {
+                initialRows: 2,
+                initialCols: 3,
+                showHeaders: true
+            });
+        }
+
+        // API demonstration functions
+        function addRowToEditor() {
+            if (editor1) {
+                editor1.addRow();
+            }
+        }
+
+        function addColumnToEditor() {
+            if (editor1) {
+                editor1.addColumn();
+            }
+        }
+
+        function getTableData() {
+            if (editor1) {
+                const data = editor1.getTableData();
+                document.getElementById('output-area').textContent = JSON.stringify(data, null, 2);
+            }
+        }
+
+        function loadSampleData() {
+            if (editor1) {
+                const sampleData = [
+                    [
+                        { content: "Product", styles: { textAlign: "center", backgroundColor: "#e3f2fd" }, rowSpan: 1, colSpan: 1 },
+                        { content: "Price", styles: { textAlign: "center", backgroundColor: "#e3f2fd" }, rowSpan: 1, colSpan: 1 },
+                        { content: "Stock", styles: { textAlign: "center", backgroundColor: "#e3f2fd" }, rowSpan: 1, colSpan: 1 },
+                        { content: "Category", styles: { textAlign: "center", backgroundColor: "#e3f2fd" }, rowSpan: 1, colSpan: 1 }
+                    ],
+                    [
+                        { content: "Laptop", styles: { fontSize: "14px" }, rowSpan: 1, colSpan: 1 },
+                        { content: "$999", styles: { textAlign: "right", color: "#28a745" }, rowSpan: 1, colSpan: 1 },
+                        { content: "15", styles: { textAlign: "center" }, rowSpan: 1, colSpan: 1 },
+                        { content: "Electronics", styles: {}, rowSpan: 1, colSpan: 1 }
+                    ],
+                    [
+                        { content: "Mouse", styles: { fontSize: "14px" }, rowSpan: 1, colSpan: 1 },
+                        { content: "$25", styles: { textAlign: "right", color: "#28a745" }, rowSpan: 1, colSpan: 1 },
+                        { content: "100", styles: { textAlign: "center" }, rowSpan: 1, colSpan: 1 },
+                        { content: "Electronics", styles: {}, rowSpan: 1, colSpan: 1 }
+                    ]
+                ];
+                editor1.setTableData(sampleData);
+            }
+        }
+
+        function destroyEditor() {
+            if (editor1) {
+                editor1.destroy();
+                editor1 = null;
+            }
+        }
+
+        function recreateEditor() {
+            if (!editor1) {
+                editor1 = new TableEditor('#editor-container', {
+                    initialRows: 2,
+                    initialCols: 3,
+                    showHeaders: true
+                });
+            }
+        }
+
+        function createSmallTable() {
+            if (editor2) {
+                editor2.destroy();
+            }
+            editor2 = new TableEditor('#editor-container-2', {
+                initialRows: 2,
+                initialCols: 2,
+                showHeaders: false
+            });
+        }
+
+        function createLargeTable() {
+            if (editor2) {
+                editor2.destroy();
+            }
+            editor2 = new TableEditor('#editor-container-2', {
+                initialRows: 5,
+                initialCols: 6,
+                showHeaders: true
+            });
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeEditors);
+    </script>
+</body>
+</html>

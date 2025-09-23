@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table Editor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+
+        .table-container {
+            overflow: auto;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            position: relative;
+            min-width: 100px;
+            min-height: 30px;
+            resize: both;
+            overflow: hidden;
+        }
+
+        .resize-handle-col {
+            position: absolute;
+            top: 0;
+            right: -3px;
+            width: 6px;
+            height: 100%;
+            cursor: col-resize;
+            background: transparent;
+            z-index: 10;
+        }
+
+        .resize-handle-col:hover {
+            background: rgba(0, 123, 255, 0.2);
+        }
+
+        .resize-handle-row {
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            height: 6px;
+            width: 100%;
+            cursor: row-resize;
+            background: transparent;
+            z-index: 10;
+        }
+
+        .resize-handle-row:hover {
+            background: rgba(0, 123, 255, 0.2);
+        }
+
+        .resize-handle-corner {
+            position: absolute;
+            bottom: -3px;
+            right: -3px;
+            width: 6px;
+            height: 6px;
+            cursor: nw-resize;
+            background: transparent;
+            z-index: 15;
+        }
+
+        .resize-handle-corner:hover {
+            background: rgba(0, 123, 255, 0.4);
+        }
+
+        .resizing {
+            user-select: none;
+        }
+
+        .resize-line {
+            position: absolute;
+            background: #007bff;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .resize-line.vertical {
+            width: 2px;
+            height: 100vh;
+            top: 0;
+        }
+
+        .resize-line.horizontal {
+            height: 2px;
+            width: 100vw;
+            left: 0;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+
+        .cell-selected {
+            background-color: #e3f2fd !important;
+            outline: 2px solid #2196f3;
+        }
+
+        .row-selected {
+            background-color: #f0f8ff !important;
+        }
+
+        .col-selected {
+            background-color: #f0f8ff !important;
+        }
+
+        .editable {
+            outline: none;
+            cursor: text;
+        }
+
+        .split-line {
+            border-top: 3px solid #ff4444;
+            margin: 10px 0;
+        }
+
+        .context-menu {
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+            min-width: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .context-menu button {
+            display: block;
+            width: 100%;
+            padding: 8px 12px;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .context-menu button:hover {
+            background-color: #f0f0f0;
+        }
+
+        .context-menu .separator {
+            height: 1px;
+            background-color: #e0e0e0;
+            margin: 5px 0;
+        }
+
+        .context-menu .format-section {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .context-menu .format-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 5px 0;
+        }
+
+        .context-menu .format-group label {
+            font-size: 12px;
+            color: #666;
+            min-width: 70px;
+        }
+
+        .context-menu input[type="number"],
+        .context-menu select,
+        .context-menu input[type="color"] {
+            padding: 4px 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 12px;
+            flex: 1;
+        }
+
+        .context-menu input[type="color"] {
+            width: 40px;
+            height: 25px;
+            padding: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Table Editor</h1>
+
+
+        <div class="table-container">
+            <table id="mainTable">
+                <thead>
+                    <tr>
+                        <th contenteditable="true" onclick="selectCell(this)" oncontextmenu="showContextMenu(event, this)">Header 1</th>
+                        <th contenteditable="true" onclick="selectCell(this)" oncontextmenu="showContextMenu(event, this)">Header 2</th>
+                        <th contenteditable="true" onclick="selectCell(this)" oncontextmenu="showContextMenu(event, this)">Header 3</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td contenteditable="true" onclick="selectCell(this)" oncontextmenu="showContextMenu(event, this)">Cell 1,1</td>
+                        <td contenteditable="true" onclick="selectCell(this)" oncontextmenu="showContextMenu(event, this)">Cell 1,2</td>
+                        <td contenteditable="true" onclick="selectCell(this)" oncontextmenu="showContextMenu(event, this)">Cell 1,3</td>
+                    </tr>
+                    <tr>
+                        <td contenteditable="true" onclick="selectCell(this)" oncontextmenu="showContextMenu(event, this)">Cell 2,1</td>
+                        <td contenteditable="true" onclick="selectCell(this)" oncontextmenu="showContextMenu(event, this)">Cell 2,2</td>
+                        <td contenteditable="true" onclick="selectCell(this)" oncontextmenu="showContextMenu(event, this)">Cell 2,3</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="context-menu" id="contextMenu">
+        <button onclick="addRowAbove()">Add Row Above</button>
+        <button onclick="addRowBelow()">Add Row Below</button>
+        <button onclick="addColumnLeft()">Add Column Left</button>
+        <button onclick="addColumnRight()">Add Column Right</button>
+        <div class="separator"></div>
+        <button onclick="deleteSelectedRow()">Delete Row</button>
+        <button onclick="deleteSelectedColumn()">Delete Column</button>
+        <div class="separator"></div>
+        <button onclick="mergeSelectedCells()">Merge Cells</button>
+        <button onclick="splitSelectedCell()">Split Cell</button>
+        <div class="separator"></div>
+        <button onclick="splitTable()">Split Table</button>
+        <div class="separator"></div>
+
+        <div class="format-section">
+            <div class="format-group">
+                <label>Align:</label>
+                <select id="contextAlignSelect" onchange="applyAlignmentFromContext()">
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                </select>
+            </div>
+
+            <div class="format-group">
+                <label>Font Size:</label>
+                <input type="number" id="contextFontSizeInput" min="8" max="72" value="14" onchange="applyFontSizeFromContext()">
+            </div>
+
+            <div class="format-group">
+                <label>Background:</label>
+                <input type="color" id="contextBgColorInput" value="#ffffff" onchange="applyBackgroundColorFromContext()">
+            </div>
+
+            <div class="format-group">
+                <label>Text Color:</label>
+                <input type="color" id="contextTextColorInput" value="#000000" onchange="applyTextColorFromContext()">
+            </div>
+        </div>
+
+        <button onclick="resetFormatFromContext()">Reset Format</button>
+        <div class="separator"></div>
+        <button onclick="clearSelectionFromContext()">Clear Selection</button>
+    </div>
+
+    <script src="table-editor.js"></script>
+    <script>
+        // Initialize resize handles when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeResizeHandles();
+        });
+    </script>
+</body>
+</html>
