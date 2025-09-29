@@ -2,6 +2,9 @@ let selectedCells = [];
 let selectedRow = null;
 let selectedColumn = null;
 let contextMenuTarget = null;
+let currentCell = null; // Currently focused cell for keyboard navigation
+let anchorCell = null; // Starting cell for range selection
+let isEditMode = false; // Track if we're in edit mode
 
 // Resize functionality variables
 let isResizing = false;
@@ -21,8 +24,74 @@ document.addEventListener('click', function(e) {
     // Don't clear selection when clicking away - only clear via context menu
 });
 
-function selectCell(cell) {
-    if (!event.ctrlKey && !event.metaKey) {
+// Handle contenteditable focus events to detect edit mode
+document.addEventListener('focusin', function(e) {
+    const cell = e.target.closest('td, th');
+    if (cell && (cell.tagName === 'TD' || cell.tagName === 'TH')) {
+        // If cell gets focus and we're not in navigation mode, we might be in edit mode
+        if (!isEditMode && currentCell === cell && window.getSelection().toString()) {
+            isEditMode = true;
+            cell.classList.add('editing-mode');
+        }
+    }
+});
+
+// Keyboard navigation and edit mode
+document.addEventListener('keydown', function(e) {
+    if (!currentCell) return;
+
+    // If in edit mode, only handle Escape
+    if (isEditMode) {
+        if (e.key === 'Escape') {
+            exitEditMode();
+            e.preventDefault();
+        }
+        return;
+    }
+
+    // Keyboard navigation
+    switch(e.key) {
+        case 'ArrowUp':
+            if (e.shiftKey) {
+                extendSelection('up');
+            } else {
+                navigateToCell('up');
+            }
+            e.preventDefault();
+            break;
+        case 'ArrowDown':
+            if (e.shiftKey) {
+                extendSelection('down');
+            } else {
+                navigateToCell('down');
+            }
+            e.preventDefault();
+            break;
+        case 'ArrowLeft':
+            if (e.shiftKey) {
+                extendSelection('left');
+            } else {
+                navigateToCell('left');
+            }
+            e.preventDefault();
+            break;
+        case 'ArrowRight':
+            if (e.shiftKey) {
+                extendSelection('right');
+            } else {
+                navigateToCell('right');
+            }
+            e.preventDefault();
+            break;
+        case 'Enter':
+            enterEditMode();
+            e.preventDefault();
+            break;
+    }
+});
+
+function selectCell(cell, event = null) {
+    if (!event || (!event.ctrlKey && !event.metaKey)) {
         clearSelection();
     }
 
@@ -31,12 +100,19 @@ function selectCell(cell) {
         selectedCells.push(cell);
     }
 
+    // Set as current cell for keyboard navigation
+    currentCell = cell;
+    anchorCell = cell; // Set anchor for range selection
+    cell.tabIndex = 0; // Make it focusable
+    cell.focus();
+
     updateFormatControls(cell);
 }
 
 function clearSelection() {
     selectedCells.forEach(cell => {
         cell.classList.remove('cell-selected');
+        cell.removeAttribute('tabIndex'); // Remove tab focus
     });
     selectedCells = [];
 
@@ -50,6 +126,176 @@ function clearSelection() {
 
     selectedRow = null;
     selectedColumn = null;
+    currentCell = null;
+    anchorCell = null;
+}
+
+// Navigation functions
+function navigateToCell(direction) {
+    if (!currentCell) return;
+
+    const table = document.getElementById('mainTable');
+    const rows = Array.from(table.querySelectorAll('tr'));
+    const currentRow = currentCell.parentNode;
+    const currentRowIndex = rows.indexOf(currentRow);
+    const currentCellIndex = Array.from(currentRow.children).indexOf(currentCell);
+
+    let newCell = null;
+
+    switch(direction) {
+        case 'up':
+            if (currentRowIndex > 0) {
+                const targetRow = rows[currentRowIndex - 1];
+                newCell = targetRow.children[Math.min(currentCellIndex, targetRow.children.length - 1)];
+            }
+            break;
+        case 'down':
+            if (currentRowIndex < rows.length - 1) {
+                const targetRow = rows[currentRowIndex + 1];
+                newCell = targetRow.children[Math.min(currentCellIndex, targetRow.children.length - 1)];
+            }
+            break;
+        case 'left':
+            if (currentCellIndex > 0) {
+                newCell = currentRow.children[currentCellIndex - 1];
+            }
+            break;
+        case 'right':
+            if (currentCellIndex < currentRow.children.length - 1) {
+                newCell = currentRow.children[currentCellIndex + 1];
+            }
+            break;
+    }
+
+    if (newCell) {
+        selectCell(newCell);
+    }
+}
+
+// Extended selection function for Shift+arrow keys
+function extendSelection(direction) {
+    if (!currentCell) return;
+
+    const table = document.getElementById('mainTable');
+    const rows = Array.from(table.querySelectorAll('tr'));
+    const currentRow = currentCell.parentNode;
+    const currentRowIndex = rows.indexOf(currentRow);
+    const currentCellIndex = Array.from(currentRow.children).indexOf(currentCell);
+
+    let newCell = null;
+
+    switch(direction) {
+        case 'up':
+            if (currentRowIndex > 0) {
+                const targetRow = rows[currentRowIndex - 1];
+                newCell = targetRow.children[Math.min(currentCellIndex, targetRow.children.length - 1)];
+            }
+            break;
+        case 'down':
+            if (currentRowIndex < rows.length - 1) {
+                const targetRow = rows[currentRowIndex + 1];
+                newCell = targetRow.children[Math.min(currentCellIndex, targetRow.children.length - 1)];
+            }
+            break;
+        case 'left':
+            if (currentCellIndex > 0) {
+                newCell = currentRow.children[currentCellIndex - 1];
+            }
+            break;
+        case 'right':
+            if (currentCellIndex < currentRow.children.length - 1) {
+                newCell = currentRow.children[currentCellIndex + 1];
+            }
+            break;
+    }
+
+    if (newCell) {
+        // Update current cell
+        currentCell = newCell;
+        newCell.tabIndex = 0;
+        newCell.focus();
+
+        // Select range from anchor to new cell
+        selectRange(anchorCell, newCell);
+    }
+}
+
+// Select a range of cells from start to end
+function selectRange(startCell, endCell) {
+    if (!startCell || !endCell) return;
+
+    const table = document.getElementById('mainTable');
+    const rows = Array.from(table.querySelectorAll('tr'));
+
+    const startRow = startCell.parentNode;
+    const endRow = endCell.parentNode;
+    const startRowIndex = rows.indexOf(startRow);
+    const endRowIndex = rows.indexOf(endRow);
+    const startCellIndex = Array.from(startRow.children).indexOf(startCell);
+    const endCellIndex = Array.from(endRow.children).indexOf(endCell);
+
+    // Clear current selection
+    clearSelection();
+
+    // Determine the range bounds
+    const minRow = Math.min(startRowIndex, endRowIndex);
+    const maxRow = Math.max(startRowIndex, endRowIndex);
+    const minCol = Math.min(startCellIndex, endCellIndex);
+    const maxCol = Math.max(startCellIndex, endCellIndex);
+
+    // Select all cells in the range
+    for (let rowIndex = minRow; rowIndex <= maxRow; rowIndex++) {
+        const row = rows[rowIndex];
+        for (let colIndex = minCol; colIndex <= maxCol && colIndex < row.children.length; colIndex++) {
+            const cell = row.children[colIndex];
+            cell.classList.add('cell-selected');
+            if (!selectedCells.includes(cell)) {
+                selectedCells.push(cell);
+            }
+        }
+    }
+
+    // Restore anchor and current cell
+    anchorCell = startCell;
+    currentCell = endCell;
+}
+
+// Edit mode functions
+function enterEditMode() {
+    if (!currentCell || isEditMode) return;
+
+    isEditMode = true;
+
+    // Add a specific class to indicate edit mode
+    currentCell.classList.add('editing-mode');
+    currentCell.focus();
+
+    // Select all text in the cell
+    const range = document.createRange();
+    range.selectNodeContents(currentCell);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+}
+
+function exitEditMode() {
+    if (!isEditMode || !currentCell) return;
+
+    isEditMode = false;
+
+    // Remove edit mode class
+    currentCell.classList.remove('editing-mode');
+
+    // Clear text selection and refocus cell for navigation
+    window.getSelection().removeAllRanges();
+
+    // Force blur and refocus to ensure we're back in navigation mode
+    currentCell.blur();
+    setTimeout(() => {
+        if (currentCell) {
+            currentCell.focus();
+        }
+    }, 10);
 }
 
 function updateFormatControls(cell) {
@@ -92,7 +338,7 @@ function addRow() {
         const cell = document.createElement('td');
         cell.contentEditable = true;
         cell.textContent = `New Cell ${tbody.children.length + 1},${i + 1}`;
-        cell.onclick = function() { selectCell(this); };
+        cell.onclick = function(e) { selectCell(this, e); };
         cell.oncontextmenu = function(e) { showContextMenu(e, this); };
         addResizeHandles(cell);
         newRow.appendChild(cell);
@@ -109,7 +355,7 @@ function addColumn() {
         const cell = document.createElement(rowIndex === 0 ? 'th' : 'td');
         cell.contentEditable = true;
         cell.textContent = rowIndex === 0 ? `Header ${row.children.length + 1}` : `Cell ${rowIndex},${row.children.length + 1}`;
-        cell.onclick = function() { selectCell(this); };
+        cell.onclick = function(e) { selectCell(this, e); };
         cell.oncontextmenu = function(e) { showContextMenu(e, this); };
         addResizeHandles(cell);
         row.appendChild(cell);
@@ -171,7 +417,7 @@ function addRowAbove() {
         const cell = document.createElement('td');
         cell.contentEditable = true;
         cell.textContent = `New Cell`;
-        cell.onclick = function() { selectCell(this); };
+        cell.onclick = function(e) { selectCell(this, e); };
         cell.oncontextmenu = function(e) { showContextMenu(e, this); };
         addResizeHandles(cell);
         newRow.appendChild(cell);
@@ -194,7 +440,7 @@ function addRowBelow() {
         const cell = document.createElement('td');
         cell.contentEditable = true;
         cell.textContent = `New Cell`;
-        cell.onclick = function() { selectCell(this); };
+        cell.onclick = function(e) { selectCell(this, e); };
         cell.oncontextmenu = function(e) { showContextMenu(e, this); };
         addResizeHandles(cell);
         newRow.appendChild(cell);
@@ -215,7 +461,7 @@ function addColumnLeft() {
         const cell = document.createElement(rowIndex === 0 ? 'th' : 'td');
         cell.contentEditable = true;
         cell.textContent = rowIndex === 0 ? `New Header` : `New Cell`;
-        cell.onclick = function() { selectCell(this); };
+        cell.onclick = function(e) { selectCell(this, e); };
         cell.oncontextmenu = function(e) { showContextMenu(e, this); };
         addResizeHandles(cell);
         row.insertBefore(cell, row.children[cellIndex]);
@@ -235,7 +481,7 @@ function addColumnRight() {
         const cell = document.createElement(rowIndex === 0 ? 'th' : 'td');
         cell.contentEditable = true;
         cell.textContent = rowIndex === 0 ? `New Header` : `New Cell`;
-        cell.onclick = function() { selectCell(this); };
+        cell.onclick = function(e) { selectCell(this, e); };
         cell.oncontextmenu = function(e) { showContextMenu(e, this); };
         addResizeHandles(cell);
 
@@ -426,7 +672,7 @@ function splitSelectedCell() {
             const newCell = document.createElement(targetRow.parentNode.tagName === 'THEAD' ? 'th' : 'td');
             newCell.contentEditable = true;
             newCell.textContent = '';
-            newCell.onclick = function() { selectCell(this); };
+            newCell.onclick = function(e) { selectCell(this, e); };
             newCell.oncontextmenu = function(e) { showContextMenu(e, this); };
             addResizeHandles(newCell);
 
@@ -510,7 +756,7 @@ function splitTable() {
     const newThead = document.createElement('thead');
     const newHeaderRow = headerRow.cloneNode(true);
     Array.from(newHeaderRow.children).forEach(cell => {
-        cell.onclick = function() { selectCell(this); };
+        cell.onclick = function(e) { selectCell(this, e); };
         cell.oncontextmenu = function(e) { showContextMenu(e, this); };
     });
     newThead.appendChild(newHeaderRow);
@@ -519,7 +765,7 @@ function splitTable() {
     const newTbody = document.createElement('tbody');
     rowsToMove.forEach(row => {
         Array.from(row.children).forEach(cell => {
-            cell.onclick = function() { selectCell(this); };
+            cell.onclick = function(e) { selectCell(this, e); };
             cell.oncontextmenu = function(e) { showContextMenu(e, this); };
         });
         newTbody.appendChild(row);
@@ -649,24 +895,48 @@ function handleResize(e) {
 
     if (resizeType === 'col' || resizeType === 'corner') {
         const newWidth = Math.max(50, startWidth + deltaX);
-        resizeTarget.style.width = newWidth + 'px';
 
         // Update resize line position
         if (resizeLine && resizeLine.classList.contains('vertical')) {
             resizeLine.style.left = e.clientX + 'px';
         }
 
-        // Apply width to entire column
-        const cellIndex = Array.from(resizeTarget.parentNode.children).indexOf(resizeTarget);
-        const table = resizeTarget.closest('table');
-        const allRowsInTable = table.querySelectorAll('tr');
+        // Check if we have multiple selected cells
+        if (selectedCells.length > 1) {
+            // Apply width to all selected cells and their columns
+            const affectedColumns = new Set();
 
-        allRowsInTable.forEach(row => {
-            const cell = row.children[cellIndex];
-            if (cell) {
-                cell.style.width = newWidth + 'px';
-            }
-        });
+            selectedCells.forEach(cell => {
+                const cellIndex = Array.from(cell.parentNode.children).indexOf(cell);
+                affectedColumns.add(cellIndex);
+            });
+
+            // Apply width to all affected columns
+            const table = resizeTarget.closest('table');
+            const allRowsInTable = table.querySelectorAll('tr');
+
+            affectedColumns.forEach(columnIndex => {
+                allRowsInTable.forEach(row => {
+                    const cell = row.children[columnIndex];
+                    if (cell) {
+                        cell.style.width = newWidth + 'px';
+                    }
+                });
+            });
+        } else {
+            // Original behavior: apply width to entire column
+            resizeTarget.style.width = newWidth + 'px';
+            const cellIndex = Array.from(resizeTarget.parentNode.children).indexOf(resizeTarget);
+            const table = resizeTarget.closest('table');
+            const allRowsInTable = table.querySelectorAll('tr');
+
+            allRowsInTable.forEach(row => {
+                const cell = row.children[cellIndex];
+                if (cell) {
+                    cell.style.width = newWidth + 'px';
+                }
+            });
+        }
     }
 
     if (resizeType === 'row' || resizeType === 'corner') {
@@ -677,11 +947,28 @@ function handleResize(e) {
             resizeLine.style.top = e.clientY + 'px';
         }
 
-        // Apply height to entire row
-        const row = resizeTarget.parentNode;
-        Array.from(row.children).forEach(cell => {
-            cell.style.height = newHeight + 'px';
-        });
+        // Check if we have multiple selected cells
+        if (selectedCells.length > 1) {
+            // Apply height to all selected cells and their rows
+            const affectedRows = new Set();
+
+            selectedCells.forEach(cell => {
+                affectedRows.add(cell.parentNode);
+            });
+
+            // Apply height to all affected rows
+            affectedRows.forEach(row => {
+                Array.from(row.children).forEach(cell => {
+                    cell.style.height = newHeight + 'px';
+                });
+            });
+        } else {
+            // Original behavior: apply height to entire row
+            const row = resizeTarget.parentNode;
+            Array.from(row.children).forEach(cell => {
+                cell.style.height = newHeight + 'px';
+            });
+        }
     }
 }
 
