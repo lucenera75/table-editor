@@ -6,6 +6,10 @@ let currentCell = null; // Currently focused cell for keyboard navigation
 let anchorCell = null; // Starting cell for range selection
 let isEditMode = false; // Track if we're in edit mode
 
+// Mouse drag selection variables
+let isMouseSelecting = false;
+let selectionStartCell = null;
+
 // Resize functionality variables
 let isResizing = false;
 let resizeType = null; // 'col', 'row', or 'corner'
@@ -51,6 +55,11 @@ document.addEventListener('keydown', function(e) {
 
     // Keyboard navigation
     switch(e.key) {
+        case 'Escape':
+            // Clear selection when not in edit mode
+            clearSelection();
+            e.preventDefault();
+            break;
         case 'ArrowUp':
             if (e.shiftKey) {
                 extendSelection('up');
@@ -91,6 +100,39 @@ document.addEventListener('keydown', function(e) {
 });
 
 function selectCell(cell, event = null) {
+    // Don't interfere if we're resizing
+    if (isResizing) return;
+
+    // Check if this is a right-click (context menu) - preserve selection if cell is already selected
+    if (event && event.button === 2) {
+        if (selectedCells.includes(cell)) {
+            // Cell is already selected, don't change selection
+            return;
+        }
+    }
+
+    // Handle mousedown events
+    if (event && event.type === 'mousedown' && event.button === 0) {
+        event.preventDefault();
+
+        // Check if this is a Shift+click to select range
+        if (event.shiftKey && anchorCell) {
+            selectRange(anchorCell, cell);
+            currentCell = cell;
+            cell.tabIndex = 0;
+            cell.focus();
+            updateFormatControls(cell);
+            return;
+        }
+
+        // Otherwise, start drag selection (for normal click without Shift)
+        if (!event.ctrlKey && !event.metaKey) {
+            startMouseSelection(cell);
+            return;
+        }
+    }
+
+    // Handle Ctrl/Cmd+click for multi-select
     if (!event || (!event.ctrlKey && !event.metaKey)) {
         clearSelection();
     }
@@ -128,6 +170,58 @@ function clearSelection() {
     selectedColumn = null;
     currentCell = null;
     anchorCell = null;
+}
+
+// Mouse drag selection functions
+function startMouseSelection(cell) {
+    if (isResizing) return;
+
+    isMouseSelecting = true;
+    selectionStartCell = cell;
+
+    clearSelection();
+
+    // Set anchor AFTER clearing selection
+    anchorCell = cell;
+
+    cell.classList.add('cell-selected');
+    selectedCells.push(cell);
+    currentCell = cell;
+
+    // Add event listeners for drag selection
+    document.addEventListener('mouseover', handleMouseOverCell);
+    document.addEventListener('mouseup', stopMouseSelection);
+
+    updateFormatControls(cell);
+}
+
+function handleMouseOverCell(e) {
+    if (!isMouseSelecting) return;
+
+    const cell = e.target.closest('td, th');
+    if (!cell || !selectionStartCell) return;
+
+    // Check if the cell is in the same table
+    if (cell.closest('table') !== selectionStartCell.closest('table')) return;
+
+    // Select range from start to current cell
+    selectRange(selectionStartCell, cell);
+    currentCell = cell;
+}
+
+function stopMouseSelection() {
+    if (!isMouseSelecting) return;
+
+    isMouseSelecting = false;
+
+    document.removeEventListener('mouseover', handleMouseOverCell);
+    document.removeEventListener('mouseup', stopMouseSelection);
+
+    // Set focus to the current cell for keyboard navigation
+    if (currentCell) {
+        currentCell.tabIndex = 0;
+        currentCell.focus();
+    }
 }
 
 // Navigation functions
@@ -304,15 +398,51 @@ function updateFormatControls(cell) {
     document.getElementById('contextAlignSelect').value = computedStyle.textAlign || 'left';
     document.getElementById('contextFontSizeInput').value = parseInt(computedStyle.fontSize) || 14;
 
+    // Update background color picker
     const bgColor = computedStyle.backgroundColor;
-    if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)' && bgColor !== 'transparent') {
-        document.getElementById('contextBgColorInput').value = rgbToHex(bgColor);
-    }
+    const bgColorHex = rgbToHex(bgColor);
 
+    // Define color map for background
+    const bgColorMap = {
+        '#ffffff': 'White',
+        '#ffebee': 'Light Red',
+        '#e8f5e9': 'Light Green',
+        '#e3f2fd': 'Light Blue',
+        '#fff9c4': 'Light Yellow',
+        '#f3e5f5': 'Light Purple',
+        '#e0e0e0': 'Light Gray',
+        '#ffccbc': 'Light Orange'
+    };
+
+    const bgLabel = bgColorMap[bgColorHex.toLowerCase()] || 'None';
+    const bgColorValue = bgColorMap[bgColorHex.toLowerCase()] ? bgColorHex : '';
+
+    currentBgColor = bgColorValue;
+    document.getElementById('bgColorPreview').style.backgroundColor = bgColorValue || 'transparent';
+    document.getElementById('bgColorLabel').textContent = bgLabel;
+
+    // Update text color picker
     const textColor = computedStyle.color;
-    if (textColor) {
-        document.getElementById('contextTextColorInput').value = rgbToHex(textColor);
-    }
+    const textColorHex = rgbToHex(textColor);
+
+    // Define color map for text
+    const textColorMap = {
+        '#000000': 'Black',
+        '#d32f2f': 'Red',
+        '#388e3c': 'Green',
+        '#1976d2': 'Blue',
+        '#f57c00': 'Orange',
+        '#7b1fa2': 'Purple',
+        '#616161': 'Gray',
+        '#c2185b': 'Pink'
+    };
+
+    const textLabel = textColorMap[textColorHex.toLowerCase()] || 'Black';
+    const textColorValue = textColorMap[textColorHex.toLowerCase()] ? textColorHex : '#000000';
+
+    currentTextColor = textColorValue;
+    document.getElementById('textColorPreview').style.backgroundColor = textColorValue;
+    document.getElementById('textColorLabel').textContent = textLabel;
 }
 
 function rgbToHex(rgb) {
@@ -338,7 +468,7 @@ function addRow() {
         const cell = document.createElement('td');
         cell.contentEditable = true;
         cell.textContent = `New Cell ${tbody.children.length + 1},${i + 1}`;
-        cell.onclick = function(e) { selectCell(this, e); };
+        cell.onmousedown = function(e) { selectCell(this, e); };
         cell.oncontextmenu = function(e) { showContextMenu(e, this); };
         addResizeHandles(cell);
         newRow.appendChild(cell);
@@ -355,7 +485,7 @@ function addColumn() {
         const cell = document.createElement(rowIndex === 0 ? 'th' : 'td');
         cell.contentEditable = true;
         cell.textContent = rowIndex === 0 ? `Header ${row.children.length + 1}` : `Cell ${rowIndex},${row.children.length + 1}`;
-        cell.onclick = function(e) { selectCell(this, e); };
+        cell.onmousedown = function(e) { selectCell(this, e); };
         cell.oncontextmenu = function(e) { showContextMenu(e, this); };
         addResizeHandles(cell);
         row.appendChild(cell);
@@ -417,7 +547,7 @@ function addRowAbove() {
         const cell = document.createElement('td');
         cell.contentEditable = true;
         cell.textContent = `New Cell`;
-        cell.onclick = function(e) { selectCell(this, e); };
+        cell.onmousedown = function(e) { selectCell(this, e); };
         cell.oncontextmenu = function(e) { showContextMenu(e, this); };
         addResizeHandles(cell);
         newRow.appendChild(cell);
@@ -440,7 +570,7 @@ function addRowBelow() {
         const cell = document.createElement('td');
         cell.contentEditable = true;
         cell.textContent = `New Cell`;
-        cell.onclick = function(e) { selectCell(this, e); };
+        cell.onmousedown = function(e) { selectCell(this, e); };
         cell.oncontextmenu = function(e) { showContextMenu(e, this); };
         addResizeHandles(cell);
         newRow.appendChild(cell);
@@ -461,7 +591,7 @@ function addColumnLeft() {
         const cell = document.createElement(rowIndex === 0 ? 'th' : 'td');
         cell.contentEditable = true;
         cell.textContent = rowIndex === 0 ? `New Header` : `New Cell`;
-        cell.onclick = function(e) { selectCell(this, e); };
+        cell.onmousedown = function(e) { selectCell(this, e); };
         cell.oncontextmenu = function(e) { showContextMenu(e, this); };
         addResizeHandles(cell);
         row.insertBefore(cell, row.children[cellIndex]);
@@ -481,7 +611,7 @@ function addColumnRight() {
         const cell = document.createElement(rowIndex === 0 ? 'th' : 'td');
         cell.contentEditable = true;
         cell.textContent = rowIndex === 0 ? `New Header` : `New Cell`;
-        cell.onclick = function(e) { selectCell(this, e); };
+        cell.onmousedown = function(e) { selectCell(this, e); };
         cell.oncontextmenu = function(e) { showContextMenu(e, this); };
         addResizeHandles(cell);
 
@@ -672,7 +802,7 @@ function splitSelectedCell() {
             const newCell = document.createElement(targetRow.parentNode.tagName === 'THEAD' ? 'th' : 'td');
             newCell.contentEditable = true;
             newCell.textContent = '';
-            newCell.onclick = function(e) { selectCell(this, e); };
+            newCell.onmousedown = function(e) { selectCell(this, e); };
             newCell.oncontextmenu = function(e) { showContextMenu(e, this); };
             addResizeHandles(newCell);
 
@@ -703,19 +833,59 @@ function applyFontSizeFromContext() {
     });
 }
 
+// Custom color picker functions
+let currentBgColor = '';
+let currentTextColor = '#000000';
+
+function toggleBgColorDropdown() {
+    const dropdown = document.getElementById('bgColorDropdown');
+    const textDropdown = document.getElementById('textColorDropdown');
+    textDropdown.classList.remove('show');
+    dropdown.classList.toggle('show');
+}
+
+function toggleTextColorDropdown() {
+    const dropdown = document.getElementById('textColorDropdown');
+    const bgDropdown = document.getElementById('bgColorDropdown');
+    bgDropdown.classList.remove('show');
+    dropdown.classList.toggle('show');
+}
+
+function selectBgColor(color, label) {
+    currentBgColor = color;
+    document.getElementById('bgColorPreview').style.backgroundColor = color || 'transparent';
+    document.getElementById('bgColorLabel').textContent = label;
+    document.getElementById('bgColorDropdown').classList.remove('show');
+    applyBackgroundColorFromContext();
+}
+
+function selectTextColor(color, label) {
+    currentTextColor = color;
+    document.getElementById('textColorPreview').style.backgroundColor = color;
+    document.getElementById('textColorLabel').textContent = label;
+    document.getElementById('textColorDropdown').classList.remove('show');
+    applyTextColorFromContext();
+}
+
 function applyBackgroundColorFromContext() {
-    const color = document.getElementById('contextBgColorInput').value;
     selectedCells.forEach(cell => {
-        cell.style.backgroundColor = color;
+        cell.style.backgroundColor = currentBgColor;
     });
 }
 
 function applyTextColorFromContext() {
-    const color = document.getElementById('contextTextColorInput').value;
     selectedCells.forEach(cell => {
-        cell.style.color = color;
+        cell.style.color = currentTextColor;
     });
 }
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.color-picker-container') && !e.target.closest('.context-menu')) {
+        document.getElementById('bgColorDropdown').classList.remove('show');
+        document.getElementById('textColorDropdown').classList.remove('show');
+    }
+});
 
 function resetFormatFromContext() {
     selectedCells.forEach(cell => {
@@ -756,7 +926,7 @@ function splitTable() {
     const newThead = document.createElement('thead');
     const newHeaderRow = headerRow.cloneNode(true);
     Array.from(newHeaderRow.children).forEach(cell => {
-        cell.onclick = function(e) { selectCell(this, e); };
+        cell.onmousedown = function(e) { selectCell(this, e); };
         cell.oncontextmenu = function(e) { showContextMenu(e, this); };
     });
     newThead.appendChild(newHeaderRow);
@@ -765,7 +935,7 @@ function splitTable() {
     const newTbody = document.createElement('tbody');
     rowsToMove.forEach(row => {
         Array.from(row.children).forEach(cell => {
-            cell.onclick = function(e) { selectCell(this, e); };
+            cell.onmousedown = function(e) { selectCell(this, e); };
             cell.oncontextmenu = function(e) { showContextMenu(e, this); };
         });
         newTbody.appendChild(row);
@@ -776,6 +946,15 @@ function splitTable() {
     const newContainer = document.createElement('div');
     newContainer.className = 'table-container';
     newContainer.style.marginTop = '20px';
+
+    // Add delete button to new table
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'table-delete-btn';
+    deleteBtn.innerHTML = '×';
+    deleteBtn.title = 'Delete Table';
+    deleteBtn.onclick = function() { deleteTable(this); };
+    newContainer.appendChild(deleteBtn);
+
     newContainer.appendChild(newTable);
 
     tableContainer.parentNode.insertBefore(newContainer, tableContainer.nextSibling);
@@ -783,12 +962,27 @@ function splitTable() {
     clearSelection();
 }
 
+function deleteTable(button) {
+    const tableContainer = button.closest('.table-container');
+
+    // Confirm deletion
+    if (confirm('Are you sure you want to delete this table?')) {
+        tableContainer.remove();
+        clearSelection();
+    }
+}
+
 function showContextMenu(event, cell) {
     event.preventDefault();
     contextMenuTarget = cell;
 
+    // Only change selection if right-clicking on a cell that's not already selected
     if (!selectedCells.includes(cell)) {
-        selectCell(cell);
+        clearSelection();
+        cell.classList.add('cell-selected');
+        selectedCells.push(cell);
+        currentCell = cell;
+        anchorCell = cell;
     }
 
     updateFormatControls(cell);
