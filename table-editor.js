@@ -707,6 +707,9 @@ function mergeSelectedCells() {
     if (colSpan > 1) firstCell.colSpan = colSpan;
     firstCell.textContent = content;
 
+    // Re-add resize handles to the merged cell
+    addResizeHandles(firstCell);
+
     clearSelection();
     hideContextMenu();
 }

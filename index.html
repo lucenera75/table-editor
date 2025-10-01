@@ -83,8 +83,26 @@
             z-index: 10;
         }
 
+        .resize-handle-col::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 3px;
+            height: 20px;
+            background: #ccc;
+            border-radius: 2px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .resize-handle-col:hover::after {
+            opacity: 1;
+        }
+
         .resize-handle-col:hover {
-            background: rgba(0, 123, 255, 0.2);
+            background: rgba(0, 123, 255, 0.1);
         }
 
         .resize-handle-row {
@@ -98,23 +116,59 @@
             z-index: 10;
         }
 
+        .resize-handle-row::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 3px;
+            background: #ccc;
+            border-radius: 2px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .resize-handle-row:hover::after {
+            opacity: 1;
+        }
+
         .resize-handle-row:hover {
-            background: rgba(0, 123, 255, 0.2);
+            background: rgba(0, 123, 255, 0.1);
         }
 
         .resize-handle-corner {
             position: absolute;
             bottom: -3px;
             right: -3px;
-            width: 6px;
-            height: 6px;
+            width: 10px;
+            height: 10px;
             cursor: nw-resize;
             background: transparent;
             z-index: 15;
         }
 
+        .resize-handle-corner::after {
+            content: '';
+            position: absolute;
+            bottom: 1px;
+            right: 1px;
+            width: 6px;
+            height: 6px;
+            background: #999;
+            border-radius: 1px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .resize-handle-corner:hover::after {
+            opacity: 1;
+            background: #007bff;
+        }
+
         .resize-handle-corner:hover {
-            background: rgba(0, 123, 255, 0.4);
+            background: rgba(0, 123, 255, 0.2);
         }
 
         .resizing {
