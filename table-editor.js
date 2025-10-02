@@ -404,18 +404,19 @@ function updateFormatControls(cell) {
 
     // Define color map for background
     const bgColorMap = {
+        '#000000': 'Black',
         '#ffffff': 'White',
-        '#ffebee': 'Light Red',
-        '#e8f5e9': 'Light Green',
-        '#e3f2fd': 'Light Blue',
-        '#fff9c4': 'Light Yellow',
-        '#f3e5f5': 'Light Purple',
-        '#e0e0e0': 'Light Gray',
-        '#ffccbc': 'Light Orange'
+        '#4ac6e9': 'Light Blue',
+        '#008aba': 'Blue',
+        '#90639d': 'Light Purple',
+        '#722a81': 'Purple',
+        '#f26649': 'Orange',
+        'yellow': 'Yellow',
+        '#ffff00': 'Yellow' // Alternative hex for yellow
     };
 
-    const bgLabel = bgColorMap[bgColorHex.toLowerCase()] || 'None';
-    const bgColorValue = bgColorMap[bgColorHex.toLowerCase()] ? bgColorHex : '';
+    const bgLabel = bgColorMap[bgColorHex.toLowerCase()] || bgColorMap[bgColor] || 'None';
+    const bgColorValue = bgColorMap[bgColorHex.toLowerCase()] || bgColorMap[bgColor] ? (bgColor === 'yellow' ? 'yellow' : bgColorHex) : '';
 
     currentBgColor = bgColorValue;
     document.getElementById('bgColorPreview').style.backgroundColor = bgColorValue || 'transparent';
@@ -428,17 +429,18 @@ function updateFormatControls(cell) {
     // Define color map for text
     const textColorMap = {
         '#000000': 'Black',
-        '#d32f2f': 'Red',
-        '#388e3c': 'Green',
-        '#1976d2': 'Blue',
-        '#f57c00': 'Orange',
-        '#7b1fa2': 'Purple',
-        '#616161': 'Gray',
-        '#c2185b': 'Pink'
+        '#ffffff': 'White',
+        '#4ac6e9': 'Light Blue',
+        '#008aba': 'Blue',
+        '#90639d': 'Light Purple',
+        '#722a81': 'Purple',
+        '#f26649': 'Orange',
+        'yellow': 'Yellow',
+        '#ffff00': 'Yellow' // Alternative hex for yellow
     };
 
-    const textLabel = textColorMap[textColorHex.toLowerCase()] || 'Black';
-    const textColorValue = textColorMap[textColorHex.toLowerCase()] ? textColorHex : '#000000';
+    const textLabel = textColorMap[textColorHex.toLowerCase()] || textColorMap[textColor] || 'Black';
+    const textColorValue = textColorMap[textColorHex.toLowerCase()] || textColorMap[textColor] ? (textColor === 'yellow' ? 'yellow' : textColorHex) : '#000000';
 
     currentTextColor = textColorValue;
     document.getElementById('textColorPreview').style.backgroundColor = textColorValue;
