@@ -28,6 +28,7 @@
             border-radius: 6px;
             position: relative;
             margin-bottom: 20px;
+            padding-left: 30px; /* Make room for drag handles */
         }
 
         .table-delete-btn {
@@ -55,6 +56,44 @@
             transform: scale(1.1);
         }
 
+        .row-drag-handle {
+            position: absolute;
+            left: -25px;
+            top: 0;
+            width: 20px;
+            height: 100%;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+            transition: opacity 0.2s;
+            color: #999;
+            background-color: red; /* Debug - make it visible */
+        }
+
+        tr:hover .row-drag-handle {
+            opacity: 1;
+        }
+
+        .row-drag-handle:hover {
+            color: #007bff;
+        }
+
+        .row-drag-handle::before {
+            content: '⋮⋮';
+            font-size: 14px;
+            letter-spacing: -2px;
+        }
+
+        tr.dragging {
+            opacity: 0.5;
+        }
+
+        tr.drag-over {
+            border-top: 3px solid #007bff;
+        }
+
         table {
             width: auto;
             max-width: 100%;
@@ -69,7 +108,7 @@
             position: relative;
             width: 200px;
             min-height: 30px;
-            overflow: hidden;
+            overflow: visible; /* Changed from hidden to visible */
         }
 
         .resize-handle-col {
@@ -427,6 +466,9 @@
         <div class="separator"></div>
         <button onclick="deleteSelectedRow()">Delete Row</button>
         <button onclick="deleteSelectedColumn()">Delete Column</button>
+        <div class="separator"></div>
+        <button onclick="moveRowUp()">Move Row Up</button>
+        <button onclick="moveRowDown()">Move Row Down</button>
         <div class="separator"></div>
         <button onclick="mergeSelectedCells()">Merge Cells</button>
         <button onclick="splitSelectedCell()">Split Cell</button>

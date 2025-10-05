@@ -556,6 +556,7 @@ function addRowAbove() {
     }
 
     currentRow.parentNode.insertBefore(newRow, currentRow);
+    addRowDragHandle(newRow);
     hideContextMenu();
 }
 
@@ -579,6 +580,7 @@ function addRowBelow() {
     }
 
     currentRow.parentNode.insertBefore(newRow, currentRow.nextSibling);
+    addRowDragHandle(newRow);
     hideContextMenu();
 }
 
@@ -640,6 +642,36 @@ function deleteSelectedRow() {
     }
 
     row.remove();
+    hideContextMenu();
+}
+
+function moveRowUp() {
+    if (!contextMenuTarget) return;
+
+    const row = contextMenuTarget.parentNode;
+    const previousRow = row.previousElementSibling;
+
+    if (!previousRow) {
+        alert('This is already the first row');
+        return;
+    }
+
+    row.parentNode.insertBefore(row, previousRow);
+    hideContextMenu();
+}
+
+function moveRowDown() {
+    if (!contextMenuTarget) return;
+
+    const row = contextMenuTarget.parentNode;
+    const nextRow = row.nextElementSibling;
+
+    if (!nextRow) {
+        alert('This is already the last row');
+        return;
+    }
+
+    row.parentNode.insertBefore(nextRow, row);
     hideContextMenu();
 }
 
@@ -1191,11 +1223,95 @@ function stopResize() {
 }
 
 function initializeResizeHandles() {
+    console.log('initializeResizeHandles called');
     const tables = document.querySelectorAll('table');
+    console.log('Found tables:', tables.length);
     tables.forEach(table => {
         const cells = table.querySelectorAll('th, td');
         cells.forEach(cell => {
             addResizeHandles(cell);
         });
+
+        // Add drag handles to rows
+        const rows = table.querySelectorAll('tbody tr');
+        console.log('Found tbody rows:', rows.length);
+        rows.forEach(row => {
+            addRowDragHandle(row);
+        });
     });
 }
+
+// Drag and drop functionality for rows
+let draggedRow = null;
+
+function addRowDragHandle(row) {
+    // Remove existing handle if any
+    const existingHandle = row.querySelector('.row-drag-handle');
+    if (existingHandle) existingHandle.remove();
+
+    const handle = document.createElement('div');
+    handle.className = 'row-drag-handle';
+    handle.draggable = true;
+
+    console.log('Adding drag handle to row:', row);
+
+    // Make the first cell position relative to contain the handle
+    const firstCell = row.querySelector('td, th');
+    if (firstCell) {
+        firstCell.style.position = 'relative';
+        firstCell.appendChild(handle);
+        console.log('Drag handle added to cell:', firstCell);
+    } else {
+        console.log('No first cell found in row');
+    }
+
+    // Prevent cell selection when clicking on drag handle
+    handle.addEventListener('mousedown', (e) => {
+        e.stopPropagation(); // Prevent cell selection
+        clearSelection(); // Clear any existing selection
+    });
+
+    handle.addEventListener('dragstart', (e) => {
+        draggedRow = row;
+        row.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+    });
+
+    handle.addEventListener('dragend', (e) => {
+        row.classList.remove('dragging');
+        document.querySelectorAll('tr.drag-over').forEach(r => r.classList.remove('drag-over'));
+        draggedRow = null;
+    });
+}
+
+// Add drag over and drop handlers to table rows
+document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        const row = e.target.closest('tbody tr');
+        if (row && draggedRow && row !== draggedRow) {
+            document.querySelectorAll('tr.drag-over').forEach(r => r.classList.remove('drag-over'));
+            row.classList.add('drag-over');
+        }
+    });
+
+    document.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const targetRow = e.target.closest('tbody tr');
+
+        if (targetRow && draggedRow && targetRow !== draggedRow) {
+            const tbody = targetRow.parentNode;
+            const rows = Array.from(tbody.children);
+            const draggedIndex = rows.indexOf(draggedRow);
+            const targetIndex = rows.indexOf(targetRow);
+
+            if (draggedIndex < targetIndex) {
+                tbody.insertBefore(draggedRow, targetRow.nextSibling);
+            } else {
+                tbody.insertBefore(draggedRow, targetRow);
+            }
+        }
+
+        document.querySelectorAll('tr.drag-over').forEach(r => r.classList.remove('drag-over'));
+    });
+});
