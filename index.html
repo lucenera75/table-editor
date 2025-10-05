@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Table Editor</title>
-    <p>v 0.0.94</p>
+    <p>v 0.0.97</p>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -28,7 +28,8 @@
             border-radius: 6px;
             position: relative;
             margin-bottom: 20px;
-            padding-left: 30px; /* Make room for drag handles */
+            padding-left: 25px; /* Make room for row drag handles */
+            padding-top: 25px; /* Make room for column drag handles */
         }
 
         .table-delete-btn {
@@ -58,18 +59,17 @@
 
         .row-drag-handle {
             position: absolute;
-            left: -25px;
+            left: -20px;
             top: 0;
-            width: 20px;
+            width: 16px;
             height: 100%;
             cursor: move;
             display: flex;
             align-items: center;
             justify-content: center;
-            opacity: 1;
+            opacity: 0;
             transition: opacity 0.2s;
             color: #999;
-            background-color: red; /* Debug - make it visible */
         }
 
         tr:hover .row-drag-handle {
@@ -82,8 +82,39 @@
 
         .row-drag-handle::before {
             content: '⋮⋮';
-            font-size: 14px;
+            font-size: 12px;
             letter-spacing: -2px;
+        }
+
+        .col-drag-handle {
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 100%;
+            height: 16px;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+            color: #999;
+        }
+
+        th:hover .col-drag-handle,
+        td:hover .col-drag-handle {
+            opacity: 1;
+        }
+
+        .col-drag-handle:hover {
+            color: #007bff;
+        }
+
+        .col-drag-handle::before {
+            content: '⋮⋮';
+            font-size: 12px;
+            letter-spacing: -2px;
+            transform: rotate(90deg);
         }
 
         tr.dragging {
@@ -92,6 +123,14 @@
 
         tr.drag-over {
             border-top: 3px solid #007bff;
+        }
+
+        .col-dragging {
+            opacity: 0.5;
+        }
+
+        .col-drag-over {
+            border-left: 3px solid #007bff;
         }
 
         table {

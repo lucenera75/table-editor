@@ -1238,11 +1238,18 @@ function initializeResizeHandles() {
         rows.forEach(row => {
             addRowDragHandle(row);
         });
+
+        // Add drag handles to header columns
+        const headerCells = table.querySelectorAll('thead th');
+        headerCells.forEach((cell, index) => {
+            addColumnDragHandle(cell, index);
+        });
     });
 }
 
-// Drag and drop functionality for rows
+// Drag and drop functionality for rows and columns
 let draggedRow = null;
+let draggedColumn = null;
 
 function addRowDragHandle(row) {
     // Remove existing handle if any
@@ -1284,21 +1291,86 @@ function addRowDragHandle(row) {
     });
 }
 
+function addColumnDragHandle(headerCell, columnIndex) {
+    // Remove existing handle if any
+    const existingHandle = headerCell.querySelector('.col-drag-handle');
+    if (existingHandle) existingHandle.remove();
+
+    const handle = document.createElement('div');
+    handle.className = 'col-drag-handle';
+    handle.draggable = true;
+    handle.dataset.columnIndex = columnIndex;
+
+    headerCell.appendChild(handle);
+
+    // Prevent cell selection when clicking on drag handle
+    handle.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+        clearSelection();
+    });
+
+    handle.addEventListener('dragstart', (e) => {
+        draggedColumn = columnIndex;
+        const table = headerCell.closest('table');
+        const rows = table.querySelectorAll('tr');
+        rows.forEach(row => {
+            const cell = row.children[columnIndex];
+            if (cell) cell.classList.add('col-dragging');
+        });
+        e.dataTransfer.effectAllowed = 'move';
+    });
+
+    handle.addEventListener('dragend', (e) => {
+        const table = headerCell.closest('table');
+        const rows = table.querySelectorAll('tr');
+        rows.forEach(row => {
+            Array.from(row.children).forEach(cell => {
+                cell.classList.remove('col-dragging');
+                cell.classList.remove('col-drag-over');
+            });
+        });
+        draggedColumn = null;
+    });
+}
+
 // Add drag over and drop handlers to table rows
 document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('dragover', (e) => {
         e.preventDefault();
+
+        // Handle row drag over
         const row = e.target.closest('tbody tr');
         if (row && draggedRow && row !== draggedRow) {
             document.querySelectorAll('tr.drag-over').forEach(r => r.classList.remove('drag-over'));
             row.classList.add('drag-over');
         }
+
+        // Handle column drag over
+        const cell = e.target.closest('th, td');
+        if (cell && draggedColumn !== null) {
+            const table = cell.closest('table');
+            const row = cell.parentNode;
+            const cellIndex = Array.from(row.children).indexOf(cell);
+
+            if (cellIndex !== draggedColumn) {
+                // Remove previous drag-over
+                table.querySelectorAll('.col-drag-over').forEach(c => c.classList.remove('col-drag-over'));
+
+                // Add drag-over to all cells in this column
+                const rows = table.querySelectorAll('tr');
+                rows.forEach(r => {
+                    const targetCell = r.children[cellIndex];
+                    if (targetCell) targetCell.classList.add('col-drag-over');
+                });
+            }
+        }
     });
 
     document.addEventListener('drop', (e) => {
         e.preventDefault();
-        const targetRow = e.target.closest('tbody tr');
 
+        // Handle row drop
+        const targetRow = e.target.closest('tbody tr');
         if (targetRow && draggedRow && targetRow !== draggedRow) {
             const tbody = targetRow.parentNode;
             const rows = Array.from(tbody.children);
@@ -1312,6 +1384,36 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        // Handle column drop
+        const targetCell = e.target.closest('th, td');
+        if (targetCell && draggedColumn !== null) {
+            const table = targetCell.closest('table');
+            const targetRow = targetCell.parentNode;
+            const targetIndex = Array.from(targetRow.children).indexOf(targetCell);
+
+            if (targetIndex !== draggedColumn && targetIndex !== -1) {
+                // Move all cells in the dragged column to the target position
+                const rows = table.querySelectorAll('tr');
+                rows.forEach(row => {
+                    const cells = Array.from(row.children);
+                    const draggedCell = cells[draggedColumn];
+                    const targetCell = cells[targetIndex];
+
+                    if (draggedCell && targetCell) {
+                        if (draggedColumn < targetIndex) {
+                            row.insertBefore(draggedCell, targetCell.nextSibling);
+                        } else {
+                            row.insertBefore(draggedCell, targetCell);
+                        }
+                    }
+                });
+
+                // Re-initialize drag handles with new column positions
+                initializeResizeHandles();
+            }
+        }
+
         document.querySelectorAll('tr.drag-over').forEach(r => r.classList.remove('drag-over'));
+        document.querySelectorAll('.col-drag-over').forEach(c => c.classList.remove('col-drag-over'));
     });
 });
