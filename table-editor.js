@@ -736,7 +736,7 @@ function addColumnLeft() {
     const grid = [];
 
     allRows.forEach((row, rowIdx) => {
-        grid[rowIdx] = [];
+        if (!grid[rowIdx]) grid[rowIdx] = [];
         let colPos = 0;
 
         Array.from(row.children).forEach(cell => {
@@ -781,43 +781,60 @@ function addColumnLeft() {
 
     // Now add new cells in rows where the insert position is not occupied
     allRows.forEach((row, rowIdx) => {
-        // Check if this position is occupied in this row
+        // Check if this position is occupied in this row by a cell that starts BEFORE this position
         const occupyingCell = grid[rowIdx][insertColPosition];
 
-        if (!occupyingCell || getColumnPosition(occupyingCell) >= insertColPosition) {
-            // Find the correct insertion point
-            let colPos = 0;
-            let insertBeforeCell = null;
-
-            for (let i = 0; i < row.children.length; i++) {
-                const cell = row.children[i];
-                // Skip positions occupied by rowspan from above
-                while (grid[rowIdx][colPos] && grid[rowIdx][colPos] !== cell) {
-                    colPos++;
-                }
-
-                if (colPos >= insertColPosition) {
-                    insertBeforeCell = cell;
+        // Only skip if the cell occupying this position started before the insert position
+        // (meaning it's a colspan/rowspan that extends into this position)
+        if (occupyingCell) {
+            // Find where this cell starts in the grid
+            let occupyingCellStart = -1;
+            for (let col = 0; col <= insertColPosition; col++) {
+                if (grid[rowIdx][col] === occupyingCell) {
+                    occupyingCellStart = col;
                     break;
                 }
-
-                colPos += cell.colSpan || 1;
             }
 
-            const newCell = document.createElement(rowIdx === 0 ? 'th' : 'td');
-            const span = document.createElement('span');
-            span.contentEditable = isDesignMode ? 'false' : 'true';
-            span.textContent = rowIdx === 0 ? `New Header ${++newCellCounter}` : `New Cell ${++newCellCounter}`;
-            newCell.appendChild(span);
-            newCell.onmousedown = function(e) { selectCell(this, e); };
-            newCell.oncontextmenu = function(e) { showContextMenu(e, this); };
-            addResizeHandles(newCell);
-
-            if (insertBeforeCell) {
-                row.insertBefore(newCell, insertBeforeCell);
-            } else {
-                row.appendChild(newCell);
+            if (occupyingCellStart < insertColPosition) {
+                // This position is occupied by a cell from before - skip this row
+                return;
             }
+        }
+
+        // Find the correct insertion point
+        let colPos = 0;
+        let insertBeforeCell = null;
+
+        for (let i = 0; i < row.children.length; i++) {
+            const cell = row.children[i];
+
+            // Skip positions occupied by rowspan from above
+            while (grid[rowIdx][colPos] && grid[rowIdx][colPos] !== cell) {
+                colPos++;
+            }
+
+            if (colPos >= insertColPosition) {
+                insertBeforeCell = cell;
+                break;
+            }
+
+            colPos += cell.colSpan || 1;
+        }
+
+        const newCell = document.createElement(rowIdx === 0 ? 'th' : 'td');
+        const span = document.createElement('span');
+        span.contentEditable = isDesignMode ? 'false' : 'true';
+        span.textContent = rowIdx === 0 ? `New Header ${++newCellCounter}` : `New Cell ${++newCellCounter}`;
+        newCell.appendChild(span);
+        newCell.onmousedown = function(e) { selectCell(this, e); };
+        newCell.oncontextmenu = function(e) { showContextMenu(e, this); };
+        addResizeHandles(newCell);
+
+        if (insertBeforeCell) {
+            row.insertBefore(newCell, insertBeforeCell);
+        } else {
+            row.appendChild(newCell);
         }
     });
 
@@ -840,7 +857,7 @@ function addColumnRight() {
     const grid = [];
 
     allRows.forEach((row, rowIdx) => {
-        grid[rowIdx] = [];
+        if (!grid[rowIdx]) grid[rowIdx] = [];
         let colPos = 0;
 
         Array.from(row.children).forEach(cell => {
@@ -885,43 +902,60 @@ function addColumnRight() {
 
     // Now add new cells in rows where the insert position is not occupied
     allRows.forEach((row, rowIdx) => {
-        // Check if this position is occupied in this row
+        // Check if this position is occupied in this row by a cell that starts BEFORE this position
         const occupyingCell = grid[rowIdx][insertColPosition];
 
-        if (!occupyingCell || getColumnPosition(occupyingCell) >= insertColPosition) {
-            // Find the correct insertion point
-            let colPos = 0;
-            let insertBeforeCell = null;
-
-            for (let i = 0; i < row.children.length; i++) {
-                const cell = row.children[i];
-                // Skip positions occupied by rowspan from above
-                while (grid[rowIdx][colPos] && grid[rowIdx][colPos] !== cell) {
-                    colPos++;
-                }
-
-                if (colPos >= insertColPosition) {
-                    insertBeforeCell = cell;
+        // Only skip if the cell occupying this position started before the insert position
+        // (meaning it's a colspan/rowspan that extends into this position)
+        if (occupyingCell) {
+            // Find where this cell starts in the grid
+            let occupyingCellStart = -1;
+            for (let col = 0; col <= insertColPosition; col++) {
+                if (grid[rowIdx][col] === occupyingCell) {
+                    occupyingCellStart = col;
                     break;
                 }
-
-                colPos += cell.colSpan || 1;
             }
 
-            const newCell = document.createElement(rowIdx === 0 ? 'th' : 'td');
-            const span = document.createElement('span');
-            span.contentEditable = isDesignMode ? 'false' : 'true';
-            span.textContent = rowIdx === 0 ? `New Header ${++newCellCounter}` : `New Cell ${++newCellCounter}`;
-            newCell.appendChild(span);
-            newCell.onmousedown = function(e) { selectCell(this, e); };
-            newCell.oncontextmenu = function(e) { showContextMenu(e, this); };
-            addResizeHandles(newCell);
-
-            if (insertBeforeCell) {
-                row.insertBefore(newCell, insertBeforeCell);
-            } else {
-                row.appendChild(newCell);
+            if (occupyingCellStart < insertColPosition) {
+                // This position is occupied by a cell from before - skip this row
+                return;
             }
+        }
+
+        // Find the correct insertion point
+        let colPos = 0;
+        let insertBeforeCell = null;
+
+        for (let i = 0; i < row.children.length; i++) {
+            const cell = row.children[i];
+
+            // Skip positions occupied by rowspan from above
+            while (grid[rowIdx][colPos] && grid[rowIdx][colPos] !== cell) {
+                colPos++;
+            }
+
+            if (colPos >= insertColPosition) {
+                insertBeforeCell = cell;
+                break;
+            }
+
+            colPos += cell.colSpan || 1;
+        }
+
+        const newCell = document.createElement(rowIdx === 0 ? 'th' : 'td');
+        const span = document.createElement('span');
+        span.contentEditable = isDesignMode ? 'false' : 'true';
+        span.textContent = rowIdx === 0 ? `New Header ${++newCellCounter}` : `New Cell ${++newCellCounter}`;
+        newCell.appendChild(span);
+        newCell.onmousedown = function(e) { selectCell(this, e); };
+        newCell.oncontextmenu = function(e) { showContextMenu(e, this); };
+        addResizeHandles(newCell);
+
+        if (insertBeforeCell) {
+            row.insertBefore(newCell, insertBeforeCell);
+        } else {
+            row.appendChild(newCell);
         }
     });
 
