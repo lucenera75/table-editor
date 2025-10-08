@@ -10,6 +10,9 @@ let isEditMode = false; // Track if we're in edit mode
 let isMouseSelecting = false;
 let selectionStartCell = null;
 
+// Counter for new cells
+let newCellCounter = 0;
+
 // Resize functionality variables
 let isResizing = false;
 let resizeType = null; // 'col', 'row', or 'corner'
@@ -486,7 +489,7 @@ function addRow() {
         const cell = document.createElement('td');
         const span = document.createElement('span');
         span.contentEditable = isDesignMode ? 'false' : 'true';
-        span.textContent = `New Cell ${tbody.children.length + 1},${i + 1}`;
+        span.textContent = `New Cell ${++newCellCounter}`;
         cell.appendChild(span);
         cell.onmousedown = function(e) { selectCell(this, e); };
         cell.oncontextmenu = function(e) { showContextMenu(e, this); };
@@ -640,7 +643,7 @@ function addRowAbove() {
         const cell = document.createElement('td');
         const span = document.createElement('span');
         span.contentEditable = isDesignMode ? 'false' : 'true';
-        span.textContent = `New Cell`;
+        span.textContent = `New Cell ${++newCellCounter}`;
         cell.appendChild(span);
         cell.onmousedown = function(e) { selectCell(this, e); };
         cell.oncontextmenu = function(e) { showContextMenu(e, this); };
@@ -687,7 +690,7 @@ function addRowBelow() {
         const cell = document.createElement('td');
         const span = document.createElement('span');
         span.contentEditable = isDesignMode ? 'false' : 'true';
-        span.textContent = `New Cell`;
+        span.textContent = `New Cell ${++newCellCounter}`;
         cell.appendChild(span);
         cell.onmousedown = function(e) { selectCell(this, e); };
         cell.oncontextmenu = function(e) { showContextMenu(e, this); };
@@ -804,7 +807,7 @@ function addColumnLeft() {
             const newCell = document.createElement(rowIdx === 0 ? 'th' : 'td');
             const span = document.createElement('span');
             span.contentEditable = isDesignMode ? 'false' : 'true';
-            span.textContent = rowIdx === 0 ? `New Header` : `New Cell`;
+            span.textContent = rowIdx === 0 ? `New Header ${++newCellCounter}` : `New Cell ${++newCellCounter}`;
             newCell.appendChild(span);
             newCell.onmousedown = function(e) { selectCell(this, e); };
             newCell.oncontextmenu = function(e) { showContextMenu(e, this); };
@@ -908,7 +911,7 @@ function addColumnRight() {
             const newCell = document.createElement(rowIdx === 0 ? 'th' : 'td');
             const span = document.createElement('span');
             span.contentEditable = isDesignMode ? 'false' : 'true';
-            span.textContent = rowIdx === 0 ? `New Header` : `New Cell`;
+            span.textContent = rowIdx === 0 ? `New Header ${++newCellCounter}` : `New Cell ${++newCellCounter}`;
             newCell.appendChild(span);
             newCell.onmousedown = function(e) { selectCell(this, e); };
             newCell.oncontextmenu = function(e) { showContextMenu(e, this); };
