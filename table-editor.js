@@ -362,11 +362,18 @@ function enterEditMode() {
 
     // Add a specific class to indicate edit mode
     currentCell.classList.add('editing-mode');
-    currentCell.focus();
 
-    // Select all text in the cell
+    // Find the span inside the cell
+    const span = currentCell.querySelector('span');
+    if (!span) return;
+
+    // Make sure the span is editable (in case we're in DESIGN mode)
+    span.contentEditable = 'true';
+    span.focus();
+
+    // Select all text in the span
     const range = document.createRange();
-    range.selectNodeContents(currentCell);
+    range.selectNodeContents(span);
     const selection = window.getSelection();
     selection.removeAllRanges();
     selection.addRange(range);
@@ -380,10 +387,19 @@ function exitEditMode() {
     // Remove edit mode class
     currentCell.classList.remove('editing-mode');
 
+    // Find the span and restore its contentEditable state based on mode
+    const span = currentCell.querySelector('span');
+    if (span && isDesignMode) {
+        span.contentEditable = 'false';
+    }
+
     // Clear text selection and refocus cell for navigation
     window.getSelection().removeAllRanges();
 
     // Force blur and refocus to ensure we're back in navigation mode
+    if (span) {
+        span.blur();
+    }
     currentCell.blur();
     setTimeout(() => {
         if (currentCell) {
@@ -462,14 +478,16 @@ function rgbToHex(rgb) {
 function addRow() {
     const table = document.getElementById('mainTable');
     const tbody = table.querySelector('tbody');
-    const headerCount = table.querySelector('thead tr').children.length;
+    const cellsNeeded = getCellsNeededForRow(table, null);
 
     const newRow = document.createElement('tr');
 
-    for (let i = 0; i < headerCount; i++) {
+    for (let i = 0; i < cellsNeeded; i++) {
         const cell = document.createElement('td');
-        cell.contentEditable = true;
-        cell.textContent = `New Cell ${tbody.children.length + 1},${i + 1}`;
+        const span = document.createElement('span');
+        span.contentEditable = isDesignMode ? 'false' : 'true';
+        span.textContent = `New Cell ${tbody.children.length + 1},${i + 1}`;
+        cell.appendChild(span);
         cell.onmousedown = function(e) { selectCell(this, e); };
         cell.oncontextmenu = function(e) { showContextMenu(e, this); };
         addResizeHandles(cell);
@@ -485,8 +503,10 @@ function addColumn() {
 
     rows.forEach((row, rowIndex) => {
         const cell = document.createElement(rowIndex === 0 ? 'th' : 'td');
-        cell.contentEditable = true;
-        cell.textContent = rowIndex === 0 ? `Header ${row.children.length + 1}` : `Cell ${rowIndex},${row.children.length + 1}`;
+        const span = document.createElement('span');
+        span.contentEditable = isDesignMode ? 'false' : 'true';
+        span.textContent = rowIndex === 0 ? `Header ${row.children.length + 1}` : `Cell ${rowIndex},${row.children.length + 1}`;
+        cell.appendChild(span);
         cell.onmousedown = function(e) { selectCell(this, e); };
         cell.oncontextmenu = function(e) { showContextMenu(e, this); };
         addResizeHandles(cell);
@@ -536,19 +556,92 @@ function removeColumn() {
     clearSelection();
 }
 
+function getTableColumnCount(table) {
+    // Calculate total column count by finding the maximum across all rows
+    const headerRow = table.querySelector('thead tr');
+    let maxColumns = 0;
+    Array.from(headerRow.children).forEach(cell => {
+        maxColumns += cell.colSpan || 1;
+    });
+    return maxColumns;
+}
+
+function getCellsNeededForRow(table, insertBeforeRow) {
+    // Calculate how many cell elements are needed for a new row
+    // considering rowspans from rows above
+    const totalColumns = getTableColumnCount(table);
+    const allRows = Array.from(table.querySelectorAll('tr'));
+    const insertIndex = insertBeforeRow ? allRows.indexOf(insertBeforeRow) : allRows.length;
+
+    // Track which column positions are occupied by rowspan cells from above
+    const occupiedColumns = new Set();
+
+    for (let rowIdx = 0; rowIdx < insertIndex; rowIdx++) {
+        const row = allRows[rowIdx];
+        let colPosition = 0;
+
+        Array.from(row.children).forEach(cell => {
+            // Skip positions occupied by previous rowspans
+            while (occupiedColumns.has(`${rowIdx}-${colPosition}`)) {
+                colPosition++;
+            }
+
+            const colspan = cell.colSpan || 1;
+            const rowspan = cell.rowSpan || 1;
+
+            // Mark positions as occupied if rowspan extends to our new row
+            if (rowspan > 1 && rowIdx + rowspan > insertIndex) {
+                for (let r = rowIdx + 1; r < rowIdx + rowspan; r++) {
+                    for (let c = 0; c < colspan; c++) {
+                        occupiedColumns.add(`${r}-${colPosition + c}`);
+                    }
+                }
+            }
+
+            colPosition += colspan;
+        });
+    }
+
+    // Count how many columns at our insert position are occupied
+    let occupiedCount = 0;
+    for (let c = 0; c < totalColumns; c++) {
+        if (occupiedColumns.has(`${insertIndex}-${c}`)) {
+            occupiedCount++;
+        }
+    }
+
+    return totalColumns - occupiedCount;
+}
+
 function addRowAbove() {
     if (!contextMenuTarget) return;
 
     const currentRow = contextMenuTarget.parentNode;
-    const table = document.getElementById('mainTable');
-    const headerCount = table.querySelector('thead tr').children.length;
+    const table = contextMenuTarget.closest('table');
+    const allRows = Array.from(table.querySelectorAll('tr'));
+    const insertIndex = allRows.indexOf(currentRow);
 
+    // First, increase rowspan for any cells from above that span through this position
+    for (let rowIdx = 0; rowIdx < insertIndex; rowIdx++) {
+        const row = allRows[rowIdx];
+        Array.from(row.children).forEach(cell => {
+            const rowspan = cell.rowSpan || 1;
+            // If this cell spans down to or past our insert position, increase its rowspan
+            if (rowIdx + rowspan > insertIndex) {
+                cell.rowSpan = rowspan + 1;
+            }
+        });
+    }
+
+    const cellsNeeded = getCellsNeededForRow(table, currentRow);
     const newRow = document.createElement('tr');
 
-    for (let i = 0; i < headerCount; i++) {
+    for (let i = 0; i < cellsNeeded; i++) {
         const cell = document.createElement('td');
-        cell.contentEditable = true;
-        cell.textContent = `New Cell`;
+        const span = document.createElement('span');
+        span.contentEditable = isDesignMode ? 'false' : 'true';
+        span.textContent = `New Cell`;
+        cell.appendChild(span);
         cell.onmousedown = function(e) { selectCell(this, e); };
         cell.oncontextmenu = function(e) { showContextMenu(e, this); };
         addResizeHandles(cell);
@@ -564,15 +657,33 @@ function addRowBelow() {
     if (!contextMenuTarget) return;
 
     const currentRow = contextMenuTarget.parentNode;
-    const table = document.getElementById('mainTable');
-    const headerCount = table.querySelector('thead tr').children.length;
+    const table = contextMenuTarget.closest('table');
+    const allRows = Array.from(table.querySelectorAll('tr'));
+    const currentIndex = allRows.indexOf(currentRow);
+    const insertIndex = currentIndex + 1;
 
+    // First, increase rowspan for any cells from above (including current row) that span through this position
+    for (let rowIdx = 0; rowIdx <= currentIndex; rowIdx++) {
+        const row = allRows[rowIdx];
+        Array.from(row.children).forEach(cell => {
+            const rowspan = cell.rowSpan || 1;
+            // If this cell spans down to or past our insert position, increase its rowspan
+            if (rowIdx + rowspan > insertIndex) {
+                cell.rowSpan = rowspan + 1;
+            }
+        });
+    }
+
+    const nextRow = currentRow.nextSibling;
+    const cellsNeeded = getCellsNeededForRow(table, nextRow);
     const newRow = document.createElement('tr');
 
-    for (let i = 0; i < headerCount; i++) {
+    for (let i = 0; i < cellsNeeded; i++) {
         const cell = document.createElement('td');
-        cell.contentEditable = true;
-        cell.textContent = `New Cell`;
+        const span = document.createElement('span');
+        span.contentEditable = isDesignMode ? 'false' : 'true';
+        span.textContent = `New Cell`;
+        cell.appendChild(span);
         cell.onmousedown = function(e) { selectCell(this, e); };
         cell.oncontextmenu = function(e) { showContextMenu(e, this); };
         addResizeHandles(cell);
@@ -593,8 +704,10 @@ function addColumnLeft() {
 
     rows.forEach((row, rowIndex) => {
         const cell = document.createElement(rowIndex === 0 ? 'th' : 'td');
-        cell.contentEditable = true;
-        cell.textContent = rowIndex === 0 ? `New Header` : `New Cell`;
+        const span = document.createElement('span');
+        span.contentEditable = isDesignMode ? 'false' : 'true';
+        span.textContent = rowIndex === 0 ? `New Header` : `New Cell`;
+        cell.appendChild(span);
         cell.onmousedown = function(e) { selectCell(this, e); };
         cell.oncontextmenu = function(e) { showContextMenu(e, this); };
         addResizeHandles(cell);
@@ -613,8 +726,10 @@ function addColumnRight() {
 
     rows.forEach((row, rowIndex) => {
         const cell = document.createElement(rowIndex === 0 ? 'th' : 'td');
-        cell.contentEditable = true;
-        cell.textContent = rowIndex === 0 ? `New Header` : `New Cell`;
+        const span = document.createElement('span');
+        span.contentEditable = isDesignMode ? 'false' : 'true';
+        span.textContent = rowIndex === 0 ? `New Header` : `New Cell`;
+        cell.appendChild(span);
         cell.onmousedown = function(e) { selectCell(this, e); };
         cell.oncontextmenu = function(e) { showContextMenu(e, this); };
         addResizeHandles(cell);
@@ -672,6 +787,62 @@ function moveRowDown() {
     }
 
     row.parentNode.insertBefore(nextRow, row);
+    hideContextMenu();
+}
+
+function sortColumnAZ() {
+    if (!contextMenuTarget) return;
+    sortColumn(true);
+}
+
+function sortColumnZA() {
+    if (!contextMenuTarget) return;
+    sortColumn(false);
+}
+
+function sortColumn(ascending) {
+    const cell = contextMenuTarget;
+    const cellIndex = Array.from(cell.parentNode.children).indexOf(cell);
+    const table = cell.closest('table');
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+
+    // Sort rows based on the column content
+    rows.sort((rowA, rowB) => {
+        const cellA = rowA.children[cellIndex];
+        const cellB = rowB.children[cellIndex];
+
+        if (!cellA || !cellB) return 0;
+
+        const textA = cellA.textContent.trim();
+        const textB = cellB.textContent.trim();
+
+        // Check if values are numbers
+        const numA = parseFloat(textA);
+        const numB = parseFloat(textB);
+        const isNumA = !isNaN(numA) && textA !== '';
+        const isNumB = !isNaN(numB) && textB !== '';
+
+        // Numbers come before letters
+        if (isNumA && !isNumB) return ascending ? -1 : 1;
+        if (!isNumA && isNumB) return ascending ? 1 : -1;
+
+        // Both numbers - compare numerically
+        if (isNumA && isNumB) {
+            return ascending ? numA - numB : numB - numA;
+        }
+
+        // Both text - compare alphabetically (case insensitive)
+        const compareResult = textA.toLowerCase().localeCompare(textB.toLowerCase());
+        return ascending ? compareResult : -compareResult;
+    });
+
+    // Re-append rows in sorted order
+    rows.forEach(row => tbody.appendChild(row));
+
+    // Re-add drag handles
+    rows.forEach(row => addRowDragHandle(row));
+
     hideContextMenu();
 }
 
@@ -739,7 +910,19 @@ function mergeSelectedCells() {
     // Set span attributes on the first cell
     if (rowSpan > 1) firstCell.rowSpan = rowSpan;
     if (colSpan > 1) firstCell.colSpan = colSpan;
-    firstCell.textContent = content;
+
+    // Update the span content instead of the cell directly
+    const span = firstCell.querySelector('span');
+    if (span) {
+        span.textContent = content;
+    } else {
+        // If no span exists, create one
+        const newSpan = document.createElement('span');
+        newSpan.contentEditable = isDesignMode ? 'false' : 'true';
+        newSpan.textContent = content;
+        firstCell.textContent = ''; // Clear cell
+        firstCell.appendChild(newSpan);
+    }
 
     // Re-add resize handles to the merged cell
     addResizeHandles(firstCell);
@@ -837,8 +1020,10 @@ function splitSelectedCell() {
 
             const targetRow = table.querySelectorAll('tr')[rowIndex + r];
             const newCell = document.createElement(targetRow.parentNode.tagName === 'THEAD' ? 'th' : 'td');
-            newCell.contentEditable = true;
-            newCell.textContent = '';
+            const span = document.createElement('span');
+            span.contentEditable = isDesignMode ? 'false' : 'true';
+            span.textContent = '';
+            newCell.appendChild(span);
             newCell.onmousedown = function(e) { selectCell(this, e); };
             newCell.oncontextmenu = function(e) { showContextMenu(e, this); };
             addResizeHandles(newCell);
@@ -1006,6 +1191,55 @@ function deleteTable(button) {
     if (confirm('Are you sure you want to delete this table?')) {
         tableContainer.remove();
         clearSelection();
+    }
+}
+
+function deleteTableFromContext() {
+    if (!contextMenuTarget) return;
+
+    const tableContainer = contextMenuTarget.closest('.table-container');
+
+    // Confirm deletion
+    if (confirm('Are you sure you want to delete this table?')) {
+        tableContainer.remove();
+        clearSelection();
+        hideContextMenu();
+    }
+}
+
+function toggleMode(button) {
+    isDesignMode = !isDesignMode;
+    const table = button.closest('.table-container').querySelector('table');
+    const spans = table.querySelectorAll('th > span, td > span');
+
+    if (isDesignMode) {
+        // Switch to DESIGN mode
+        button.textContent = 'DESIGN';
+        button.classList.remove('edit-mode');
+
+        // Disable editing
+        spans.forEach(span => {
+            span.contentEditable = 'false';
+        });
+
+        // Show drag handles
+        document.querySelectorAll('.row-drag-handle, .col-drag-handle').forEach(handle => {
+            handle.style.display = 'flex';
+        });
+    } else {
+        // Switch to EDIT mode
+        button.textContent = 'EDIT';
+        button.classList.add('edit-mode');
+
+        // Enable editing
+        spans.forEach(span => {
+            span.contentEditable = 'true';
+        });
+
+        // Hide drag handles
+        document.querySelectorAll('.row-drag-handle, .col-drag-handle').forEach(handle => {
+            handle.style.display = 'none';
+        });
     }
 }
 
@@ -1246,6 +1480,9 @@ function initializeResizeHandles() {
         });
     });
 }
+
+// Design/Edit mode
+let isDesignMode = true; // Start in design mode
 
 // Drag and drop functionality for rows and columns
 let draggedRow = null;

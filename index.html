@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Table Editor</title>
-    <p>v 0.0.97</p>
+    <p>v 0.0.107</p>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -55,6 +55,35 @@
         .table-delete-btn:hover {
             background-color: #b71c1c;
             transform: scale(1.1);
+        }
+
+        .mode-toggle-btn {
+            position: absolute;
+            top: -15px;
+            right: 25px;
+            padding: 5px 12px;
+            border-radius: 15px;
+            background-color: #007bff;
+            color: white;
+            border: 2px solid white;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 10;
+            transition: background-color 0.3s;
+        }
+
+        .mode-toggle-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .mode-toggle-btn.edit-mode {
+            background-color: #28a745;
+        }
+
+        .mode-toggle-btn.edit-mode:hover {
+            background-color: #1e7e34;
         }
 
         .row-drag-handle {
@@ -472,25 +501,24 @@
 
 
         <div class="table-container">
-            <button class="table-delete-btn" onclick="deleteTable(this)" title="Delete Table">×</button>
             <table id="mainTable">
                 <thead>
                     <tr>
-                        <th contenteditable="true" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)">Header 1</th>
-                        <th contenteditable="true" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)">Header 2</th>
-                        <th contenteditable="true" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)">Header 3</th>
+                        <th onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">Header 1</span></th>
+                        <th onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">Header 2</span></th>
+                        <th onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">Header 3</span></th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td contenteditable="true" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)">Cell 1,1</td>
-                        <td contenteditable="true" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)">Cell 1,2</td>
-                        <td contenteditable="true" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)">Cell 1,3</td>
+                        <td onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">Cell 1,1</span></td>
+                        <td onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">Cell 1,2</span></td>
+                        <td onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">Cell 1,3</span></td>
                     </tr>
                     <tr>
-                        <td contenteditable="true" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)">Cell 2,1</td>
-                        <td contenteditable="true" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)">Cell 2,2</td>
-                        <td contenteditable="true" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)">Cell 2,3</td>
+                        <td onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">Cell 2,1</span></td>
+                        <td onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">Cell 2,2</span></td>
+                        <td onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">Cell 2,3</span></td>
                     </tr>
                 </tbody>
             </table>
@@ -509,10 +537,14 @@
         <button onclick="moveRowUp()">Move Row Up</button>
         <button onclick="moveRowDown()">Move Row Down</button>
         <div class="separator"></div>
+        <button onclick="sortColumnAZ()">Sort Column A→Z</button>
+        <button onclick="sortColumnZA()">Sort Column Z→A</button>
+        <div class="separator"></div>
         <button onclick="mergeSelectedCells()">Merge Cells</button>
         <button onclick="splitSelectedCell()">Split Cell</button>
         <div class="separator"></div>
         <button onclick="splitTable()">Split Table</button>
+        <button onclick="deleteTableFromContext()">Delete Table</button>
         <div class="separator"></div>
 
         <div class="format-section">
