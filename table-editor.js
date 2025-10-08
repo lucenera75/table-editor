@@ -1355,8 +1355,18 @@ function resetFormatFromContext() {
 
     document.getElementById('contextAlignSelect').value = 'left';
     document.getElementById('contextFontSizeInput').value = 14;
-    document.getElementById('contextBgColorInput').value = '#ffffff';
-    document.getElementById('contextTextColorInput').value = '#000000';
+
+    // Reset background color picker
+    const bgColorPreview = document.getElementById('bgColorPreview');
+    const bgColorLabel = document.getElementById('bgColorLabel');
+    if (bgColorPreview) bgColorPreview.style.backgroundColor = '#ffffff';
+    if (bgColorLabel) bgColorLabel.textContent = 'None';
+
+    // Reset text color picker
+    const textColorPreview = document.getElementById('textColorPreview');
+    const textColorLabel = document.getElementById('textColorLabel');
+    if (textColorPreview) textColorPreview.style.backgroundColor = '#000000';
+    if (textColorLabel) textColorLabel.textContent = 'Black';
 }
 
 function splitTable() {
