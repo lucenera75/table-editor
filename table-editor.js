@@ -31,6 +31,20 @@ document.addEventListener('click', function(e) {
     // Don't clear selection when clicking away - only clear via context menu
 });
 
+// Handle double-click to enter edit mode
+document.addEventListener('dblclick', function(e) {
+    const cell = e.target.closest('td, th');
+    if (cell && (cell.tagName === 'TD' || cell.tagName === 'TH')) {
+        // Don't enter edit mode if clicking on handles or other controls
+        if (e.target.closest('.resize-handle-col, .resize-handle-row, .resize-handle-corner, .row-drag-handle, .col-drag-handle')) {
+            return;
+        }
+
+        currentCell = cell;
+        enterEditMode();
+    }
+});
+
 // Handle contenteditable focus events to detect edit mode
 document.addEventListener('focusin', function(e) {
     const cell = e.target.closest('td, th');
@@ -105,6 +119,11 @@ document.addEventListener('keydown', function(e) {
 function selectCell(cell, event = null) {
     // Don't interfere if we're resizing
     if (isResizing) return;
+
+    // If we're in edit mode and clicking on a different cell, exit edit mode first
+    if (isEditMode && currentCell && currentCell !== cell) {
+        exitEditMode();
+    }
 
     // Check if this is a right-click (context menu) - preserve selection if cell is already selected
     if (event && event.button === 2) {
