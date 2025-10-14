@@ -57,6 +57,28 @@ document.addEventListener('focusin', function(e) {
     }
 });
 
+// Handle paste events to ensure content goes into the span
+document.addEventListener('paste', function(e) {
+    const cell = e.target.closest('td, th');
+    if (!cell || (cell.tagName !== 'TD' && cell.tagName !== 'TH')) return;
+
+    // If pasting into a cell (not already into a span), redirect to span
+    if (e.target === cell) {
+        e.preventDefault();
+        const span = cell.querySelector('span');
+        if (span) {
+            span.focus();
+            // Trigger paste again on the span
+            const pasteEvent = new ClipboardEvent('paste', {
+                clipboardData: e.clipboardData,
+                bubbles: true,
+                cancelable: true
+            });
+            span.dispatchEvent(pasteEvent);
+        }
+    }
+});
+
 // Keyboard navigation and edit mode
 document.addEventListener('keydown', function(e) {
     if (!currentCell) return;
@@ -1367,6 +1389,60 @@ function resetFormatFromContext() {
     const textColorLabel = document.getElementById('textColorLabel');
     if (textColorPreview) textColorPreview.style.backgroundColor = '#000000';
     if (textColorLabel) textColorLabel.textContent = 'Black';
+}
+
+async function pasteAsPlainText() {
+    if (!currentCell) {
+        alert('Please select a cell first');
+        return;
+    }
+
+    try {
+        // Try to read HTML from clipboard first, fallback to plain text
+        const clipboardItems = await navigator.clipboard.read();
+        let text = '';
+
+        for (const item of clipboardItems) {
+            if (item.types.includes('text/html')) {
+                const blob = await item.getType('text/html');
+                const html = await blob.text();
+                // Strip HTML tags
+                const temp = document.createElement('div');
+                temp.innerHTML = html;
+                text = temp.textContent || temp.innerText || '';
+                break;
+            } else if (item.types.includes('text/plain')) {
+                const blob = await item.getType('text/plain');
+                text = await blob.text();
+                break;
+            }
+        }
+
+        // Strip any remaining tags (HTML, XML, etc.) using regex
+        text = text.replace(/<[^>]*>/g, '');
+
+        const span = currentCell.querySelector('span');
+        if (span) {
+            span.textContent = text;
+        } else {
+            currentCell.textContent = text;
+        }
+    } catch (err) {
+        // Fallback to simple readText if clipboard.read() fails
+        try {
+            let text = await navigator.clipboard.readText();
+            // Strip any tags
+            text = text.replace(/<[^>]*>/g, '');
+            const span = currentCell.querySelector('span');
+            if (span) {
+                span.textContent = text;
+            } else {
+                currentCell.textContent = text;
+            }
+        } catch (fallbackErr) {
+            alert('Failed to read clipboard. Please make sure you have granted clipboard permissions.');
+        }
+    }
 }
 
 function splitTable() {
