@@ -574,6 +574,16 @@
             </div>
 
             <div class="format-group">
+                <label>Style:</label>
+                <div style="display: flex; gap: 5px;">
+                    <button id="boldBtn" onclick="toggleBold()" style="font-weight: bold; width: 30px; padding: 4px 8px;">B</button>
+                    <button id="italicBtn" onclick="toggleItalic()" style="font-style: italic; width: 30px; padding: 4px 8px;">I</button>
+                    <button id="underlineBtn" onclick="toggleUnderline()" style="text-decoration: underline; width: 30px; padding: 4px 8px;">U</button>
+                    <button id="strikeBtn" onclick="toggleStrikethrough()" style="text-decoration: line-through; width: 30px; padding: 4px 8px;">S</button>
+                </div>
+            </div>
+
+            <div class="format-group">
                 <label>Background:</label>
                 <div class="color-picker-container">
                     <div class="color-picker-selected" id="bgColorPicker" onclick="toggleBgColorDropdown()">

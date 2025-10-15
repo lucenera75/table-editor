@@ -505,6 +505,9 @@ function updateFormatControls(cell) {
     currentTextColor = textColorValue;
     document.getElementById('textColorPreview').style.backgroundColor = textColorValue;
     document.getElementById('textColorLabel').textContent = textLabel;
+
+    // Update format buttons state
+    updateFormatButtons();
 }
 
 function rgbToHex(rgb) {
@@ -1313,6 +1316,108 @@ function applyFontSizeFromContext() {
     });
 }
 
+function toggleBold() {
+    // Check if all cells are bold
+    const allBold = selectedCells.every(cell => {
+        const weight = window.getComputedStyle(cell).fontWeight;
+        return weight === 'bold' || weight === '700';
+    });
+
+    // If all are bold, remove it. Otherwise, make all bold
+    selectedCells.forEach(cell => {
+        cell.style.fontWeight = allBold ? 'normal' : 'bold';
+    });
+    updateFormatButtons();
+}
+
+function toggleItalic() {
+    // Check if all cells are italic
+    const allItalic = selectedCells.every(cell => {
+        return window.getComputedStyle(cell).fontStyle === 'italic';
+    });
+
+    // If all are italic, remove it. Otherwise, make all italic
+    selectedCells.forEach(cell => {
+        cell.style.fontStyle = allItalic ? 'normal' : 'italic';
+    });
+    updateFormatButtons();
+}
+
+function toggleUnderline() {
+    // Check if all cells have underline
+    const allUnderlined = selectedCells.every(cell => {
+        return window.getComputedStyle(cell).textDecoration.includes('underline');
+    });
+
+    selectedCells.forEach(cell => {
+        const currentDecoration = window.getComputedStyle(cell).textDecoration;
+        const hasStrike = currentDecoration.includes('line-through');
+
+        if (allUnderlined) {
+            // Remove underline from all, keep strikethrough if present
+            cell.style.textDecoration = hasStrike ? 'line-through' : 'none';
+        } else {
+            // Add underline to all, preserve strikethrough if present
+            cell.style.textDecoration = hasStrike ? 'underline line-through' : 'underline';
+        }
+    });
+    updateFormatButtons();
+}
+
+function toggleStrikethrough() {
+    // Check if all cells have strikethrough
+    const allStrikethrough = selectedCells.every(cell => {
+        return window.getComputedStyle(cell).textDecoration.includes('line-through');
+    });
+
+    selectedCells.forEach(cell => {
+        const currentDecoration = window.getComputedStyle(cell).textDecoration;
+        const hasUnderline = currentDecoration.includes('underline');
+
+        if (allStrikethrough) {
+            // Remove strikethrough from all, keep underline if present
+            cell.style.textDecoration = hasUnderline ? 'underline' : 'none';
+        } else {
+            // Add strikethrough to all, preserve underline if present
+            cell.style.textDecoration = hasUnderline ? 'underline line-through' : 'line-through';
+        }
+    });
+    updateFormatButtons();
+}
+
+function updateFormatButtons() {
+    if (selectedCells.length === 0) return;
+
+    const boldBtn = document.getElementById('boldBtn');
+    const italicBtn = document.getElementById('italicBtn');
+    const underlineBtn = document.getElementById('underlineBtn');
+    const strikeBtn = document.getElementById('strikeBtn');
+
+    // Check if all cells have each format
+    const allBold = selectedCells.every(cell => {
+        const weight = window.getComputedStyle(cell).fontWeight;
+        return weight === 'bold' || weight === '700';
+    });
+
+    const allItalic = selectedCells.every(cell => {
+        return window.getComputedStyle(cell).fontStyle === 'italic';
+    });
+
+    const allUnderlined = selectedCells.every(cell => {
+        return window.getComputedStyle(cell).textDecoration.includes('underline');
+    });
+
+    const allStrikethrough = selectedCells.every(cell => {
+        return window.getComputedStyle(cell).textDecoration.includes('line-through');
+    });
+
+    // Update button states - only show active if ALL cells have the format
+    if (boldBtn) boldBtn.style.backgroundColor = allBold ? '#007bff' : '';
+    if (italicBtn) italicBtn.style.backgroundColor = allItalic ? '#007bff' : '';
+    if (underlineBtn) underlineBtn.style.backgroundColor = allUnderlined ? '#007bff' : '';
+    if (strikeBtn) strikeBtn.style.backgroundColor = allStrikethrough ? '#007bff' : '';
+}
+
 // Custom color picker functions
 let currentBgColor = '';
 let currentTextColor = '#000000';
@@ -1373,6 +1478,9 @@ function resetFormatFromContext() {
         cell.style.fontSize = '';
         cell.style.backgroundColor = '';
         cell.style.color = '';
+        cell.style.fontWeight = '';
+        cell.style.fontStyle = '';
+        cell.style.textDecoration = '';
     });
 
     document.getElementById('contextAlignSelect').value = 'left';
@@ -1389,6 +1497,9 @@ function resetFormatFromContext() {
     const textColorLabel = document.getElementById('textColorLabel');
     if (textColorPreview) textColorPreview.style.backgroundColor = '#000000';
     if (textColorLabel) textColorLabel.textContent = 'Black';
+
+    // Reset format buttons
+    updateFormatButtons();
 }
 
 async function pasteAsPlainText() {
