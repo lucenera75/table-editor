@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Table Editor</title>
-    <p>v 0.0.107</p>
+    <title>Document Editor</title>
+    <p>v 0.0.108</p>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -383,6 +383,36 @@
             overflow-y: auto;
         }
 
+        .text-format-menu {
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+            padding: 5px;
+        }
+
+        .text-format-menu button {
+            padding: 6px 10px;
+            margin: 2px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 3px;
+        }
+
+        .text-format-menu button:hover {
+            background-color: #f0f0f0;
+        }
+
+        .text-format-menu button.active {
+            background-color: #007bff;
+            color: white;
+        }
+
         .context-menu button {
             display: block;
             width: 100%;
@@ -497,8 +527,11 @@
 </head>
 <body>
     <div class="container">
-        <h1>Table Editor</h1>
+        <h1>Document Editor</h1>
 
+        <div contenteditable="true" style="margin-bottom: 20px; padding: 15px; background: white; border: 1px solid #ddd; border-radius: 4px; line-height: 1.6;">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        </div>
 
         <div class="table-container">
             <table id="mainTable">
@@ -681,7 +714,114 @@
         <button onclick="clearSelectionFromContext()">Clear Selection</button>
     </div>
 
-    <script src="table-editor.js"></script>
+    <div class="text-format-menu" id="textFormatMenu">
+        <div style="display: flex; gap: 3px; margin-bottom: 5px;">
+            <button id="textBoldBtn" onclick="toggleBold()" style="font-weight: bold;" title="Bold (Ctrl+B)">B</button>
+            <button id="textItalicBtn" onclick="toggleItalic()" style="font-style: italic;" title="Italic (Ctrl+I)">I</button>
+            <button id="textUnderlineBtn" onclick="toggleUnderline()" style="text-decoration: underline;" title="Underline (Ctrl+U)">U</button>
+            <button id="textStrikeBtn" onclick="toggleStrikethrough()" style="text-decoration: line-through;" title="Strikethrough">S</button>
+        </div>
+        <div style="display: flex; gap: 5px; align-items: center; padding: 3px 0; border-top: 1px solid #ddd; padding-top: 5px;">
+            <label style="font-size: 11px; margin: 0; min-width: 35px;">Size:</label>
+            <input type="number" id="textFontSize" min="8" max="72" value="14" onchange="applyTextFontSize()" style="width: 50px; padding: 3px;">
+        </div>
+        <div style="display: flex; gap: 5px; align-items: center; padding: 3px 0;">
+            <label style="font-size: 11px; margin: 0; min-width: 35px;">Text:</label>
+            <div class="color-picker-container" style="position: relative;">
+                <div class="color-picker-selected" id="textMenuTextColorPicker" onclick="toggleTextMenuTextColorDropdown()" style="cursor: pointer; padding: 3px 8px; border: 1px solid #ddd; border-radius: 3px; display: flex; align-items: center; gap: 5px; min-width: 100px;">
+                    <div class="color-preview" id="textMenuTextColorPreview" style="width: 20px; height: 20px; border: 1px solid #ccc; background-color: #000000;"></div>
+                    <span id="textMenuTextColorLabel" style="font-size: 11px;">Black</span>
+                </div>
+                <div class="color-picker-dropdown" id="textMenuTextColorDropdown" style="position: absolute; top: 100%; left: 0; z-index: 2000;">
+                    <div class="color-option" onclick="selectTextMenuTextColor('#000000', 'Black')">
+                        <div class="color-preview" style="background-color: #000000;"></div>
+                        <span>Black</span>
+                    </div>
+                    <div class="color-option" onclick="selectTextMenuTextColor('#FFFFFF', 'White')">
+                        <div class="color-preview" style="background-color: #FFFFFF; border: 1px solid #ccc;"></div>
+                        <span>White</span>
+                    </div>
+                    <div class="color-option" onclick="selectTextMenuTextColor('#4ac6e9', 'Light Blue')">
+                        <div class="color-preview" style="background-color: #4ac6e9;"></div>
+                        <span>Light Blue</span>
+                    </div>
+                    <div class="color-option" onclick="selectTextMenuTextColor('#008aba', 'Blue')">
+                        <div class="color-preview" style="background-color: #008aba;"></div>
+                        <span>Blue</span>
+                    </div>
+                    <div class="color-option" onclick="selectTextMenuTextColor('#90639d', 'Light Purple')">
+                        <div class="color-preview" style="background-color: #90639d;"></div>
+                        <span>Light Purple</span>
+                    </div>
+                    <div class="color-option" onclick="selectTextMenuTextColor('#722a81', 'Purple')">
+                        <div class="color-preview" style="background-color: #722a81;"></div>
+                        <span>Purple</span>
+                    </div>
+                    <div class="color-option" onclick="selectTextMenuTextColor('#f26649', 'Orange')">
+                        <div class="color-preview" style="background-color: #f26649;"></div>
+                        <span>Orange</span>
+                    </div>
+                    <div class="color-option" onclick="selectTextMenuTextColor('yellow', 'Yellow')">
+                        <div class="color-preview" style="background-color: yellow;"></div>
+                        <span>Yellow</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="display: flex; gap: 5px; align-items: center; padding: 3px 0;">
+            <label style="font-size: 11px; margin: 0; min-width: 35px;">Back:</label>
+            <div class="color-picker-container" style="position: relative;">
+                <div class="color-picker-selected" id="textMenuBgColorPicker" onclick="toggleTextMenuBgColorDropdown()" style="cursor: pointer; padding: 3px 8px; border: 1px solid #ddd; border-radius: 3px; display: flex; align-items: center; gap: 5px; min-width: 100px;">
+                    <div class="color-preview" id="textMenuBgColorPreview" style="width: 20px; height: 20px; border: 1px solid #ccc; background-color: transparent;"></div>
+                    <span id="textMenuBgColorLabel" style="font-size: 11px;">None</span>
+                </div>
+                <div class="color-picker-dropdown" id="textMenuBgColorDropdown" style="position: absolute; top: 100%; left: 0; z-index: 2000;">
+                    <div class="color-option" onclick="selectTextMenuBgColor('', 'None')">
+                        <div class="color-preview" style="background-color: transparent; border: 1px solid #ccc;"></div>
+                        <span>None</span>
+                    </div>
+                    <div class="color-option" onclick="selectTextMenuBgColor('#000000', 'Black')">
+                        <div class="color-preview" style="background-color: #000000;"></div>
+                        <span>Black</span>
+                    </div>
+                    <div class="color-option" onclick="selectTextMenuBgColor('#FFFFFF', 'White')">
+                        <div class="color-preview" style="background-color: #FFFFFF;"></div>
+                        <span>White</span>
+                    </div>
+                    <div class="color-option" onclick="selectTextMenuBgColor('#4ac6e9', 'Light Blue')">
+                        <div class="color-preview" style="background-color: #4ac6e9;"></div>
+                        <span>Light Blue</span>
+                    </div>
+                    <div class="color-option" onclick="selectTextMenuBgColor('#008aba', 'Blue')">
+                        <div class="color-preview" style="background-color: #008aba;"></div>
+                        <span>Blue</span>
+                    </div>
+                    <div class="color-option" onclick="selectTextMenuBgColor('#90639d', 'Light Purple')">
+                        <div class="color-preview" style="background-color: #90639d;"></div>
+                        <span>Light Purple</span>
+                    </div>
+                    <div class="color-option" onclick="selectTextMenuBgColor('#722a81', 'Purple')">
+                        <div class="color-preview" style="background-color: #722a81;"></div>
+                        <span>Purple</span>
+                    </div>
+                    <div class="color-option" onclick="selectTextMenuBgColor('#f26649', 'Orange')">
+                        <div class="color-preview" style="background-color: #f26649;"></div>
+                        <span>Orange</span>
+                    </div>
+                    <div class="color-option" onclick="selectTextMenuBgColor('yellow', 'Yellow')">
+                        <div class="color-preview" style="background-color: yellow;"></div>
+                        <span>Yellow</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="border-top: 1px solid #ddd; margin-top: 5px; padding-top: 5px;">
+            <button onclick="selectParentTag()" style="width: 100%; padding: 5px; font-size: 12px; margin-bottom: 3px;">Select Parent Tag</button>
+            <button onclick="clearTextFormat()" style="width: 100%; padding: 5px; font-size: 12px;">Clear Format</button>
+        </div>
+    </div>
+
+    <script src="document-editor.js"></script>
     <script>
         // Initialize resize handles when page loads
         document.addEventListener('DOMContentLoaded', function() {
