@@ -785,6 +785,41 @@
             assertEquals(selectedCells.length, selectedCount, 'Selection should be preserved after mouseup/click');
         }
 
+        async function test_dragSelectionPreservedInNewTable() {
+            const testArea = document.getElementById('testArea');
+            testArea.innerHTML = '';
+
+            // Create a new table like createTableFromMenu does
+            const newTable = createDynamicTable(3, 3);
+            testArea.appendChild(newTable);
+
+            const cells = newTable.querySelectorAll('td');
+
+            // Simulate drag selection on new table
+            const mousedownEvent = new MouseEvent('mousedown', {
+                bubbles: true,
+                cancelable: true,
+                button: 0
+            });
+            cells[0].dispatchEvent(mousedownEvent);
+
+            const mouseoverEvent = new MouseEvent('mouseover', { bubbles: true, cancelable: true });
+            cells[1].dispatchEvent(mouseoverEvent);
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+
+            const selectedCount = selectedCells.length;
+            assert(selectedCount >= 2, 'Should have multiple cells selected in new table');
+
+            // Simulate mouseup
+            const mouseupEvent = new MouseEvent('mouseup', { bubbles: true, cancelable: true });
+            document.dispatchEvent(mouseupEvent);
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+
+            assertEquals(selectedCells.length, selectedCount, 'Selection should be preserved in new table after mouseup');
+        }
+
         // Test runner
         const tests = [
             { name: 'Table Creation', fn: test_tableCreation },
@@ -811,7 +846,8 @@
             { name: 'Delete Row in Created Table', fn: test_deleteRowInCreatedTable },
             { name: 'Delete Column in Created Table', fn: test_deleteColumnInCreatedTable },
             { name: 'Merge Cells in Created Table', fn: test_mergeCellsInCreatedTable },
-            { name: 'Drag Selection Preserved on Mouseup', fn: test_dragSelectionPreservedOnMouseup }
+            { name: 'Drag Selection Preserved on Mouseup', fn: test_dragSelectionPreservedOnMouseup },
+            { name: 'Drag Selection Preserved in New Table', fn: test_dragSelectionPreservedInNewTable }
         ];
 
         async function runAllTests() {

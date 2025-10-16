@@ -90,11 +90,29 @@ document.addEventListener('click', function(e) {
         if (dropdown) dropdown.classList.remove('show');
     }
 
-    // Clear cell selection when clicking on other editable content
+    // Clear cell selection when clicking on other editable content (not in a table cell)
+    // But don't clear if we have multiple cells selected (from drag selection)
+    if (selectedCells.length > 1) {
+        console.log('=== CLICK EVENT - SKIPPING (multi-selection) ===');
+        return;
+    }
+
     const editableContent = e.target.closest('[contenteditable="true"]');
     const clickedCell = e.target.closest('td, th');
 
-    if (editableContent && !clickedCell && selectedCells.length > 0) {
+    // Check if the editable content is inside a table cell
+    const editableInCell = editableContent && editableContent.closest('td, th');
+
+    console.log('=== CLICK EVENT ===');
+    console.log('e.target:', e.target);
+    console.log('editableContent:', editableContent);
+    console.log('clickedCell:', clickedCell);
+    console.log('editableInCell:', editableInCell);
+    console.log('selectedCells.length:', selectedCells.length);
+    console.log('Should clear?', editableContent && !clickedCell && !editableInCell && selectedCells.length > 0);
+
+    if (editableContent && !clickedCell && !editableInCell && selectedCells.length > 0) {
+        console.log('CLEARING from click handler');
         clearSelection();
     }
 });
@@ -728,17 +746,40 @@ document.addEventListener('keydown', function(e) {
 });
 
 function selectCell(cell, event = null) {
+    console.log('=== selectCell CALLED ===');
+    console.log('Cell:', cell);
+    console.log('Cell table ID:', cell.closest('table')?.id || 'NO ID');
+    console.log('Event:', event);
+    console.log('Event type:', event?.type);
+    console.log('Event button:', event?.button);
+    console.log('Current selectedCells.length:', selectedCells.length);
+    console.log('isResizing:', isResizing);
+    console.log('isMouseSelecting:', isMouseSelecting);
+
     // Don't interfere if we're resizing
-    if (isResizing) return;
+    if (isResizing) {
+        console.log('RETURN: isResizing');
+        return;
+    }
+
+    // Don't clear multi-selection if we're just finishing a drag operation
+    // This can happen when click/focus events fire after mouseup
+    if (selectedCells.length > 1 && !event) {
+        console.log('RETURN: multi-selection without event');
+        return;
+    }
 
     // If we're in edit mode and clicking on a different cell, exit edit mode first
     if (isEditMode && currentCell && currentCell !== cell) {
+        console.log('Exiting edit mode');
         exitEditMode();
     }
 
     // Check if this is a right-click (context menu) - preserve selection if cell is already selected
     if (event && event.button === 2) {
+        console.log('Right-click detected');
         if (selectedCells.includes(cell)) {
+            console.log('RETURN: right-click on already selected cell');
             // Cell is already selected, don't change selection
             return;
         }
@@ -746,10 +787,12 @@ function selectCell(cell, event = null) {
 
     // Handle mousedown events
     if (event && event.type === 'mousedown' && event.button === 0) {
+        console.log('Mousedown detected');
         event.preventDefault();
 
         // Check if this is a Shift+click to select range
         if (event.shiftKey && anchorCell) {
+            console.log('RETURN: Shift+click range selection');
             selectRange(anchorCell, cell);
             currentCell = cell;
             cell.tabIndex = 0;
@@ -760,19 +803,34 @@ function selectCell(cell, event = null) {
 
         // Otherwise, start drag selection (for normal click without Shift)
         if (!event.ctrlKey && !event.metaKey) {
+            console.log('RETURN: Starting drag selection');
             startMouseSelection(cell);
             return;
         }
     }
 
     // Ignore click events that happen after drag selection - they would clear the selection
-    if (event && event.type === 'click' && selectedCells.length > 1) {
-        return;
+    // Also ignore any events that aren't mousedown when we already have multiple cells selected
+    if (event && selectedCells.length > 1) {
+        console.log('Multi-selection exists, checking event type');
+        if (event.type === 'click') {
+            console.log('RETURN: Ignoring click event with multi-selection');
+            return;
+        }
+        // If it's not a mousedown event and we have multiple cells selected, preserve selection
+        if (event.type !== 'mousedown') {
+            console.log('RETURN: Ignoring non-mousedown event with multi-selection');
+            return;
+        }
     }
 
     // Handle Ctrl/Cmd+click for multi-select
+    console.log('Checking if should clear selection');
     if (!event || (!event.ctrlKey && !event.metaKey)) {
+        console.log('CLEARING SELECTION');
         clearSelection();
+    } else {
+        console.log('NOT clearing selection (Ctrl/Cmd held)');
     }
 
     cell.classList.add('cell-selected');
@@ -790,6 +848,10 @@ function selectCell(cell, event = null) {
 }
 
 function clearSelection() {
+    console.log('=== clearSelection CALLED ===');
+    console.log('Clearing', selectedCells.length, 'cells');
+    console.log('Stack trace:', new Error().stack);
+
     selectedCells.forEach(cell => {
         cell.classList.remove('cell-selected');
         cell.removeAttribute('tabIndex'); // Remove tab focus
@@ -812,6 +874,10 @@ function clearSelection() {
 
 // Mouse drag selection functions
 function startMouseSelection(cell) {
+    console.log('=== startMouseSelection CALLED ===');
+    console.log('Cell:', cell);
+    console.log('Cell table ID:', cell.closest('table')?.id || 'NO ID');
+
     if (isResizing) return;
 
     isMouseSelecting = true;
@@ -826,6 +892,7 @@ function startMouseSelection(cell) {
     selectedCells.push(cell);
     currentCell = cell;
 
+    console.log('Added mouseover and mouseup listeners');
     // Add event listeners for drag selection
     document.addEventListener('mouseover', handleMouseOverCell);
     document.addEventListener('mouseup', stopMouseSelection);
@@ -842,24 +909,39 @@ function handleMouseOverCell(e) {
     // Check if the cell is in the same table
     if (cell.closest('table') !== selectionStartCell.closest('table')) return;
 
+    console.log('=== handleMouseOverCell - dragging to cell ===');
+    console.log('Cell:', cell);
+    console.log('selectedCells.length before selectRange:', selectedCells.length);
+
     // Select range from start to current cell
     selectRange(selectionStartCell, cell);
     currentCell = cell;
+
+    console.log('selectedCells.length after selectRange:', selectedCells.length);
 }
 
 function stopMouseSelection() {
+    console.log('=== stopMouseSelection CALLED ===');
+    console.log('isMouseSelecting:', isMouseSelecting);
+    console.log('selectedCells.length:', selectedCells.length);
+
     if (!isMouseSelecting) return;
 
     isMouseSelecting = false;
 
+    console.log('Removing mouseover and mouseup listeners');
     document.removeEventListener('mouseover', handleMouseOverCell);
     document.removeEventListener('mouseup', stopMouseSelection);
 
+    console.log('Setting focus to current cell');
     // Set focus to the current cell for keyboard navigation
     if (currentCell) {
         currentCell.tabIndex = 0;
         currentCell.focus();
+        console.log('Focus set to cell in table:', currentCell.closest('table')?.id || 'NO ID');
     }
+
+    console.log('stopMouseSelection COMPLETE - selectedCells.length:', selectedCells.length);
 }
 
 // Navigation functions
