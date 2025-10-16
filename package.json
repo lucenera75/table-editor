@@ -1,0 +1,11 @@
+{
+  "name": "document-editor",
+  "version": "0.0.128",
+  "description": "Document editor with table and text formatting capabilities",
+  "scripts": {
+    "test": "node run-tests.js"
+  },
+  "devDependencies": {
+    "puppeteer": "^21.0.0"
+  }
+}

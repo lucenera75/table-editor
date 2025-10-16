@@ -26,6 +26,7 @@ let resizeLine = null;
 // Store the current text selection when using the format menu
 let savedSelection = null;
 let isInputFocused = false;
+let menuHideTimeout = null;
 
 // Prevent mousedown on text format menu from clearing selection
 document.addEventListener('mousedown', function(e) {
@@ -89,13 +90,75 @@ document.addEventListener('click', function(e) {
         if (dropdown) dropdown.classList.remove('show');
     }
 
-    // Don't clear selection when clicking away - only clear via context menu
+    // Clear cell selection when clicking on other editable content
+    const editableContent = e.target.closest('[contenteditable="true"]');
+    const clickedCell = e.target.closest('td, th');
+
+    if (editableContent && !clickedCell && selectedCells.length > 0) {
+        clearSelection();
+    }
+});
+
+// Show text format menu on right-click
+document.addEventListener('contextmenu', function(e) {
+    // Don't override context menu for table cells - they have their own
+    if (e.target.closest('td, th')) {
+        return;
+    }
+
+    // Check if we're in a contenteditable area
+    const editableArea = e.target.closest('[contenteditable="true"]');
+    if (!editableArea) {
+        return;
+    }
+
+    e.preventDefault();
+
+    // Save the selection
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        savedSelection = selection.getRangeAt(0).cloneRange();
+    }
+
+    // Show the text format menu at the click position
+    const menu = document.getElementById('textFormatMenu');
+    if (!menu) return;
+
+    menu.style.display = 'block';
+    menu.style.left = e.pageX + 'px';
+    menu.style.top = e.pageY + 'px';
+
+    // Adjust position if menu goes off screen
+    const menuRect = menu.getBoundingClientRect();
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+
+    if (menuRect.right > windowWidth) {
+        menu.style.left = (e.pageX - menuRect.width) + 'px';
+    }
+
+    if (menuRect.bottom > windowHeight) {
+        menu.style.top = (e.pageY - menuRect.height) + 'px';
+    }
+
+    // Set timeout to hide menu after 5 seconds
+    if (menuHideTimeout) {
+        clearTimeout(menuHideTimeout);
+    }
+    menuHideTimeout = setTimeout(() => {
+        hideTextFormatMenu();
+    }, 5000);
 });
 
 // Show text format menu on text selection
 document.addEventListener('mouseup', function(e) {
     // Don't reposition if clicking inside the text format menu
     if (e.target.closest('.text-format-menu')) {
+        // Cancel any pending hide timeout
+        if (menuHideTimeout) {
+            clearTimeout(menuHideTimeout);
+            menuHideTimeout = null;
+        }
         return;
     }
 
@@ -114,9 +177,25 @@ document.addEventListener('mouseup', function(e) {
                 : container.closest('.context-menu');
 
             if (!isInContextMenu) {
+                // Save the selection
+                savedSelection = range.cloneRange();
+
                 showTextFormatMenu();
+
+                // Set timeout to hide menu after 5 seconds
+                if (menuHideTimeout) {
+                    clearTimeout(menuHideTimeout);
+                }
+                menuHideTimeout = setTimeout(() => {
+                    hideTextFormatMenu();
+                }, 5000);
             }
         } else {
+            // No selection - hide immediately
+            if (menuHideTimeout) {
+                clearTimeout(menuHideTimeout);
+                menuHideTimeout = null;
+            }
             hideTextFormatMenu();
         }
     }, 10);
@@ -414,9 +493,8 @@ function clearTextFormat() {
         updateFormatButtons();
     } else {
         // Clear format from selected text
-        const selection = window.getSelection();
-        if (selection.rangeCount > 0) {
-            const range = selection.getRangeAt(0);
+        const range = savedSelection || (window.getSelection().rangeCount > 0 ? window.getSelection().getRangeAt(0) : null);
+        if (range) {
             const fragment = range.extractContents();
 
             // Get plain text
@@ -424,11 +502,103 @@ function clearTextFormat() {
             tempDiv.appendChild(fragment);
             const plainText = tempDiv.textContent || tempDiv.innerText;
 
-            // Insert plain text
-            range.deleteContents();
+            // Insert plain text (no need to deleteContents - extractContents already removed it)
             range.insertNode(document.createTextNode(plainText));
         }
     }
+    hideTextFormatMenu();
+}
+
+function createTableFromMenu() {
+    // Prompt for table dimensions
+    const rows = prompt('Number of rows:', '3');
+    const cols = prompt('Number of columns:', '3');
+
+    if (!rows || !cols || isNaN(rows) || isNaN(cols)) {
+        return;
+    }
+
+    const numRows = parseInt(rows);
+    const numCols = parseInt(cols);
+
+    if (numRows < 1 || numCols < 1) {
+        alert('Table must have at least 1 row and 1 column');
+        return;
+    }
+
+    // Create table element
+    const table = document.createElement('table');
+    table.style.borderCollapse = 'collapse';
+    table.style.border = '1px solid #ddd';
+    table.style.marginTop = '10px';
+    table.style.marginBottom = '10px';
+
+    // Create header row
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    for (let c = 0; c < numCols; c++) {
+        const th = document.createElement('th');
+        th.style.border = '1px solid #ddd';
+        th.style.padding = '8px';
+        th.style.position = 'relative';
+        th.onmousedown = function(e) { selectCell(this, e); };
+        th.oncontextmenu = function(e) { showContextMenu(e, this); };
+
+        const span = document.createElement('span');
+        span.contentEditable = isDesignMode ? 'false' : 'true';
+        span.textContent = `Header ${c + 1}`;
+        th.appendChild(span);
+
+        headerRow.appendChild(th);
+    }
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    // Create body rows
+    const tbody = document.createElement('tbody');
+    for (let r = 0; r < numRows - 1; r++) {
+        const row = document.createElement('tr');
+        for (let c = 0; c < numCols; c++) {
+            const td = document.createElement('td');
+            td.style.border = '1px solid #ddd';
+            td.style.padding = '8px';
+            td.style.position = 'relative';
+            td.onmousedown = function(e) { selectCell(this, e); };
+            td.oncontextmenu = function(e) { showContextMenu(e, this); };
+
+            const span = document.createElement('span');
+            span.contentEditable = isDesignMode ? 'false' : 'true';
+            span.textContent = `Cell ${r + 1}-${c + 1}`;
+            td.appendChild(span);
+
+            row.appendChild(td);
+        }
+        tbody.appendChild(row);
+    }
+    table.appendChild(tbody);
+
+    // Insert table at cursor position or at the end of contenteditable area
+    if (savedSelection) {
+        savedSelection.deleteContents();
+        savedSelection.insertNode(table);
+
+        // Add line break after table for easier editing
+        const br = document.createElement('br');
+        table.parentNode.insertBefore(br, table.nextSibling);
+    } else {
+        // Find a contenteditable element and append to it
+        const editableDiv = document.querySelector('[contenteditable="true"]');
+        if (editableDiv) {
+            editableDiv.appendChild(table);
+            editableDiv.appendChild(document.createElement('br'));
+        }
+    }
+
+    // Initialize resize handles for the new table
+    setTimeout(() => {
+        initializeResizeHandles();
+    }, 10);
+
     hideTextFormatMenu();
 }
 
@@ -595,6 +765,11 @@ function selectCell(cell, event = null) {
         }
     }
 
+    // Ignore click events that happen after drag selection - they would clear the selection
+    if (event && event.type === 'click' && selectedCells.length > 1) {
+        return;
+    }
+
     // Handle Ctrl/Cmd+click for multi-select
     if (!event || (!event.ctrlKey && !event.metaKey)) {
         clearSelection();
@@ -691,7 +866,10 @@ function stopMouseSelection() {
 function navigateToCell(direction) {
     if (!currentCell) return;
 
-    const table = document.getElementById('mainTable');
+    // Get the table from the current cell instead of hardcoding mainTable
+    const table = currentCell.closest('table');
+    if (!table) return;
+
     const rows = Array.from(table.querySelectorAll('tr'));
     const currentRow = currentCell.parentNode;
     const currentRowIndex = rows.indexOf(currentRow);
@@ -733,7 +911,10 @@ function navigateToCell(direction) {
 function extendSelection(direction) {
     if (!currentCell) return;
 
-    const table = document.getElementById('mainTable');
+    // Get the table from the current cell instead of hardcoding mainTable
+    const table = currentCell.closest('table');
+    if (!table) return;
+
     const rows = Array.from(table.querySelectorAll('tr'));
     const currentRow = currentCell.parentNode;
     const currentRowIndex = rows.indexOf(currentRow);
@@ -781,7 +962,10 @@ function extendSelection(direction) {
 function selectRange(startCell, endCell) {
     if (!startCell || !endCell) return;
 
-    const table = document.getElementById('mainTable');
+    // Get the table from the startCell instead of hardcoding mainTable
+    const table = startCell.closest('table');
+    if (!table) return;
+
     const rows = Array.from(table.querySelectorAll('tr'));
 
     const startRow = startCell.parentNode;
@@ -942,7 +1126,10 @@ function rgbToHex(rgb) {
 }
 
 function addRow() {
-    const table = document.getElementById('mainTable');
+    // Get table from the first selected cell, or fallback to mainTable
+    const table = (selectedCells.length > 0 && selectedCells[0].closest('table')) || document.getElementById('mainTable');
+    if (!table) return;
+
     const tbody = table.querySelector('tbody');
     const cellsNeeded = getCellsNeededForRow(table, null);
 
@@ -964,7 +1151,10 @@ function addRow() {
 }
 
 function addColumn() {
-    const table = document.getElementById('mainTable');
+    // Get table from the first selected cell, or fallback to mainTable
+    const table = (selectedCells.length > 0 && selectedCells[0].closest('table')) || document.getElementById('mainTable');
+    if (!table) return;
+
     const rows = table.querySelectorAll('tr');
 
     rows.forEach((row, rowIndex) => {
@@ -1005,7 +1195,9 @@ function removeColumn() {
     }
 
     const cellIndex = Array.from(selectedCells[0].parentNode.children).indexOf(selectedCells[0]);
-    const table = document.getElementById('mainTable');
+    const table = selectedCells[0].closest('table');
+    if (!table) return;
+
     const rows = table.querySelectorAll('tr');
 
     if (rows[0].children.length <= 1) {
@@ -1024,7 +1216,9 @@ function removeColumn() {
 
 function getTableColumnCount(table) {
     // Calculate total column count by finding the maximum across all rows
-    const headerRow = table.querySelector('thead tr');
+    const headerRow = table.querySelector('thead tr') || table.querySelector('tr');
+    if (!headerRow) return 0;
+
     let maxColumns = 0;
     Array.from(headerRow.children).forEach(cell => {
         maxColumns += cell.colSpan || 1;
@@ -1530,7 +1724,9 @@ function deleteSelectedColumn() {
     if (!contextMenuTarget) return;
 
     const cellIndex = Array.from(contextMenuTarget.parentNode.children).indexOf(contextMenuTarget);
-    const table = document.getElementById('mainTable');
+    const table = contextMenuTarget.closest('table');
+    if (!table) return;
+
     const rows = table.querySelectorAll('tr');
 
     if (rows[0].children.length <= 1) {
@@ -2097,7 +2293,8 @@ function splitTable() {
     }
 
     const selectedRow = selectedCells[0].parentNode;
-    const table = document.getElementById('mainTable');
+    const table = selectedCells[0].closest('table');
+    if (!table) return;
     const allRows = Array.from(table.querySelectorAll('tr'));
     const selectedRowIndex = allRows.indexOf(selectedRow);
 
@@ -2136,14 +2333,6 @@ function splitTable() {
     newContainer.className = 'table-container';
     newContainer.style.marginTop = '20px';
 
-    // Add delete button to new table
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'table-delete-btn';
-    deleteBtn.innerHTML = '×';
-    deleteBtn.title = 'Delete Table';
-    deleteBtn.onclick = function() { deleteTable(this); };
-    newContainer.appendChild(deleteBtn);
-
     newContainer.appendChild(newTable);
 
     tableContainer.parentNode.insertBefore(newContainer, tableContainer.nextSibling);
@@ -2159,6 +2348,62 @@ function deleteTable(button) {
         tableContainer.remove();
         clearSelection();
     }
+}
+
+function toggleTableHeaders() {
+    if (!contextMenuTarget) return;
+
+    const table = contextMenuTarget.closest('table');
+    if (!table) return;
+
+    const thead = table.querySelector('thead');
+
+    if (thead) {
+        // Headers exist - hide or show them
+        if (thead.style.display === 'none') {
+            // Show headers
+            thead.style.display = '';
+        } else {
+            // Hide headers
+            thead.style.display = 'none';
+        }
+    } else {
+        // No thead exists - convert first row to header
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return;
+
+        const firstRow = tbody.querySelector('tr');
+        if (!firstRow) return;
+
+        // Create thead and move first row to it
+        const newThead = document.createElement('thead');
+
+        // Convert td cells to th cells
+        const cells = firstRow.querySelectorAll('td');
+        cells.forEach(td => {
+            const th = document.createElement('th');
+            th.innerHTML = td.innerHTML;
+            th.style.cssText = td.style.cssText;
+            th.setAttribute('onmousedown', 'selectCell(this, event)');
+            th.setAttribute('oncontextmenu', 'showContextMenu(event, this)');
+
+            // Copy attributes
+            Array.from(td.attributes).forEach(attr => {
+                if (attr.name !== 'onmousedown' && attr.name !== 'oncontextmenu') {
+                    th.setAttribute(attr.name, attr.value);
+                }
+            });
+
+            firstRow.removeChild(td);
+            firstRow.appendChild(th);
+        });
+
+        tbody.removeChild(firstRow);
+        newThead.appendChild(firstRow);
+        table.insertBefore(newThead, tbody);
+    }
+
+    hideContextMenu();
 }
 
 function deleteTableFromContext() {
