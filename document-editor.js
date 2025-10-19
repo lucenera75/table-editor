@@ -1373,8 +1373,14 @@ function exitEditMode() {
 function updateFormatControls(cell) {
     const computedStyle = window.getComputedStyle(cell);
 
-    document.getElementById('contextAlignSelect').value = computedStyle.textAlign || 'left';
-    document.getElementById('contextFontSizeInput').value = parseInt(computedStyle.fontSize) || 14;
+    const alignSelect = document.getElementById('contextAlignSelect');
+    if (alignSelect) alignSelect.value = computedStyle.textAlign || 'left';
+
+    const verticalAlignSelect = document.getElementById('contextVerticalAlignSelect');
+    if (verticalAlignSelect) verticalAlignSelect.value = computedStyle.verticalAlign || 'middle';
+
+    const fontSizeInput = document.getElementById('contextFontSizeInput');
+    if (fontSizeInput) fontSizeInput.value = parseInt(computedStyle.fontSize) || 14;
 
     // Update background color picker
     const bgColor = computedStyle.backgroundColor;
@@ -1940,6 +1946,27 @@ function addColumnRight() {
     hideContextMenu();
 }
 
+function deleteCell() {
+    if (selectedCells.length === 0) {
+        alert('Please select at least one cell');
+        return;
+    }
+
+    selectedCells.forEach(cell => {
+        // Hide borders and make transparent
+        cell.style.border = 'none';
+        cell.style.backgroundColor = 'transparent';
+
+        // Clear content
+        const span = cell.querySelector('span');
+        if (span) {
+            span.textContent = '';
+        }
+    });
+
+    hideContextMenu();
+}
+
 function deleteSelectedRow() {
     if (!contextMenuTarget) return;
 
@@ -2263,10 +2290,46 @@ function toggleCellInvisible() {
     hideContextMenu();
 }
 
+function toggleVerticalText() {
+    if (selectedCells.length === 0) {
+        alert('Please select at least one cell');
+        return;
+    }
+
+    selectedCells.forEach(cell => {
+        const span = cell.querySelector('span');
+        if (!span) return;
+
+        // Check if text is currently vertical
+        const isVertical = span.style.writingMode === 'vertical-rl' ||
+                          span.style.transform === 'rotate(90deg)';
+
+        if (isVertical) {
+            // Make horizontal - restore normal
+            span.style.writingMode = '';
+            span.style.transform = '';
+            span.style.textOrientation = '';
+        } else {
+            // Make vertical - rotate 90 degrees
+            span.style.writingMode = 'vertical-rl';
+            span.style.textOrientation = 'mixed';
+        }
+    });
+
+    hideContextMenu();
+}
+
 function applyAlignmentFromContext() {
     const alignment = document.getElementById('contextAlignSelect').value;
     selectedCells.forEach(cell => {
         cell.style.textAlign = alignment;
+    });
+}
+
+function applyVerticalAlignmentFromContext() {
+    const alignment = document.getElementById('contextVerticalAlignSelect').value;
+    selectedCells.forEach(cell => {
+        cell.style.verticalAlign = alignment;
     });
 }
 

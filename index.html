@@ -572,6 +572,7 @@
         <button onclick="addColumnLeft()">Add Column Left</button>
         <button onclick="addColumnRight()">Add Column Right</button>
         <div class="separator"></div>
+        <button onclick="deleteCell()">Delete Cell</button>
         <button onclick="deleteSelectedRow()">Delete Row</button>
         <button onclick="deleteSelectedColumn()">Delete Column</button>
         <div class="separator"></div>
@@ -585,6 +586,7 @@
         <button onclick="splitSelectedCell()">Split Cell</button>
         <div class="separator"></div>
         <button onclick="toggleCellInvisible()">Toggle Invisible</button>
+        <button onclick="toggleVerticalText()">Toggle Vertical Text</button>
         <div class="separator"></div>
         <button onclick="pasteAsPlainText()">Paste as Plain Text</button>
         <div class="separator"></div>
@@ -596,11 +598,20 @@
 
         <div class="format-section">
             <div class="format-group">
-                <label>Align:</label>
+                <label>H-Align:</label>
                 <select id="contextAlignSelect" onchange="applyAlignmentFromContext()">
                     <option value="left">Left</option>
                     <option value="center">Center</option>
                     <option value="right">Right</option>
+                </select>
+            </div>
+
+            <div class="format-group">
+                <label>V-Align:</label>
+                <select id="contextVerticalAlignSelect" onchange="applyVerticalAlignmentFromContext()">
+                    <option value="top">Top</option>
+                    <option value="middle">Middle</option>
+                    <option value="bottom">Bottom</option>
                 </select>
             </div>
 
