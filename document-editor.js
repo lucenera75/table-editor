@@ -28,6 +28,227 @@ let savedSelection = null;
 let isInputFocused = false;
 let menuHideTimeout = null;
 
+// Undo/Redo system
+let undoStack = [];
+let redoStack = [];
+let lastSnapshot = null; // Keep track of the last snapshot to compare
+const SNAPSHOT_INTERVAL_MS = 1000; // Check for changes every 1 second
+const MAX_UNDO_STATES = 25; // Maximum number of undo states to keep (localStorage has ~5MB limit)
+let isUndoRedoInProgress = false; // Flag to prevent snapshots during undo/redo
+let snapshotIntervalId = null; // Interval ID for the snapshot timer
+
+// Initialize undo system - load from localStorage if available
+function initializeUndoSystem() {
+    try {
+        const saved = localStorage.getItem('documentEditorUndoStack');
+        if (saved) {
+            undoStack = JSON.parse(saved);
+            console.log('Loaded undo history:', undoStack.length, 'states');
+        }
+    } catch (e) {
+        console.error('Failed to load undo history:', e);
+        undoStack = [];
+    }
+
+    // Start the automatic snapshot timer
+    startSnapshotTimer();
+}
+
+// Save undo stack to localStorage
+function saveUndoStackToStorage() {
+    try {
+        const serialized = JSON.stringify(undoStack);
+        localStorage.setItem('documentEditorUndoStack', serialized);
+    } catch (e) {
+        // Handle quota exceeded error
+        if (e.name === 'QuotaExceededError' || e.code === 22) {
+            console.warn('LocalStorage quota exceeded. Removing oldest undo states...');
+            // Remove oldest states until it fits
+            while (undoStack.length > 5) {
+                undoStack.shift();
+                try {
+                    localStorage.setItem('documentEditorUndoStack', JSON.stringify(undoStack));
+                    console.log('Successfully saved after reducing to', undoStack.length, 'states');
+                    return;
+                } catch (e2) {
+                    // Keep trying with fewer states
+                }
+            }
+            console.error('Could not save undo history even with minimal states');
+        } else {
+            console.error('Failed to save undo history:', e);
+        }
+    }
+}
+
+// Capture a snapshot of the current document state
+function captureSnapshot() {
+    if (isUndoRedoInProgress) return null;
+
+    const body = document.body;
+    if (!body) {
+        console.error('Body not found');
+        return null;
+    }
+
+    return {
+        timestamp: Date.now(),
+        html: body.innerHTML
+    };
+}
+
+// Start automatic snapshot timer
+function startSnapshotTimer() {
+    // Take initial snapshot
+    const initial = captureSnapshot();
+    if (initial) {
+        lastSnapshot = initial.html;
+        undoStack.push(initial);
+        saveUndoStackToStorage();
+        console.log('Initial snapshot captured');
+    }
+
+    // Check for changes every second
+    snapshotIntervalId = setInterval(() => {
+        if (isUndoRedoInProgress) return;
+
+        const current = document.body.innerHTML;
+
+        // Compare with last snapshot
+        if (current !== lastSnapshot) {
+            const snapshot = captureSnapshot();
+            if (snapshot) {
+                undoStack.push(snapshot);
+                lastSnapshot = current;
+
+                // Limit stack size
+                if (undoStack.length > MAX_UNDO_STATES) {
+                    undoStack.shift();
+                }
+
+                // Clear redo stack when new change is made
+                redoStack = [];
+
+                // Save to localStorage
+                saveUndoStackToStorage();
+
+                console.log('Auto-snapshot taken. Undo stack size:', undoStack.length);
+            }
+        }
+    }, SNAPSHOT_INTERVAL_MS);
+}
+
+// Stop the snapshot timer
+function stopSnapshotTimer() {
+    if (snapshotIntervalId) {
+        clearInterval(snapshotIntervalId);
+        snapshotIntervalId = null;
+    }
+}
+
+// Restore a snapshot
+function restoreSnapshot(snapshot) {
+    if (!snapshot) return;
+
+    isUndoRedoInProgress = true;
+
+    try {
+        // Restore the entire body
+        document.body.innerHTML = snapshot.html;
+        lastSnapshot = snapshot.html;
+
+        console.log('Snapshot restored from', new Date(snapshot.timestamp).toLocaleTimeString());
+
+        // Reinitialize everything after restoration
+        setTimeout(() => {
+            reinitializeAfterRestore();
+        }, 10);
+    } finally {
+        setTimeout(() => {
+            isUndoRedoInProgress = false;
+        }, 50);
+    }
+}
+
+// Reinitialize all event handlers and functionality after restore
+function reinitializeAfterRestore() {
+    // Reinitialize all table cell event handlers
+    const tables = document.querySelectorAll('table');
+    tables.forEach(table => {
+        const cells = table.querySelectorAll('td, th');
+        cells.forEach(cell => {
+            // Reattach event handlers
+            cell.onmousedown = function(e) { selectCell(this, e); };
+            cell.oncontextmenu = function(e) { showContextMenu(e, this); };
+        });
+    });
+
+    // Reinitialize resize handles
+    initializeResizeHandles();
+
+    // Clear any selections
+    selectedCells = [];
+    currentCell = null;
+    anchorCell = null;
+
+    // Hide any open menus
+    hideContextMenu();
+    hideTextFormatMenu();
+
+    console.log('Event handlers reinitialized after restore');
+}
+
+// Undo function
+function undo() {
+    console.log('=== UNDO CALLED ===');
+    console.log('Undo stack length:', undoStack.length);
+
+    if (undoStack.length === 0) {
+        console.log('Nothing to undo');
+        return;
+    }
+
+    // Save current state to redo stack before undoing
+    const currentState = captureSnapshot();
+    if (currentState) {
+        redoStack.push(currentState);
+        console.log('Saved current state to redo stack');
+    }
+
+    // Pop and restore previous state
+    const previousState = undoStack.pop();
+    console.log('Restoring state from:', new Date(previousState.timestamp).toLocaleTimeString());
+    restoreSnapshot(previousState);
+
+    // Save updated stack
+    saveUndoStackToStorage();
+
+    console.log('Undo performed. Undo stack:', undoStack.length, 'Redo stack:', redoStack.length);
+}
+
+// Redo function
+function redo() {
+    if (redoStack.length === 0) {
+        console.log('Nothing to redo');
+        return;
+    }
+
+    // Save current state to undo stack before redoing
+    const currentState = captureSnapshot();
+    if (currentState) {
+        undoStack.push(currentState);
+    }
+
+    // Pop and restore next state
+    const nextState = redoStack.pop();
+    restoreSnapshot(nextState);
+
+    // Save updated stack
+    saveUndoStackToStorage();
+
+    console.log('Redo performed. Undo stack:', undoStack.length, 'Redo stack:', redoStack.length);
+}
+
 // Prevent mousedown on text format menu from clearing selection
 document.addEventListener('mousedown', function(e) {
     if (e.target.closest('.text-format-menu')) {
@@ -547,7 +768,6 @@ function createTableFromMenu() {
     // Create table element
     const table = document.createElement('table');
     table.style.borderCollapse = 'collapse';
-    table.style.border = '1px solid #ddd';
     table.style.marginTop = '10px';
     table.style.marginBottom = '10px';
 
@@ -670,6 +890,19 @@ document.addEventListener('paste', function(e) {
 
 // Keyboard navigation and edit mode
 document.addEventListener('keydown', function(e) {
+    // Handle undo/redo
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        if (e.shiftKey) {
+            // Ctrl+Shift+Z or Cmd+Shift+Z = Redo
+            redo();
+        } else {
+            // Ctrl+Z or Cmd+Z = Undo
+            undo();
+        }
+        e.preventDefault();
+        return;
+    }
+
     // Handle formatting shortcuts (Ctrl/Cmd + B, I, U) regardless of table context
     if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey) {
         switch(e.key.toLowerCase()) {
@@ -1219,6 +1452,7 @@ function addRow() {
 
     for (let i = 0; i < cellsNeeded; i++) {
         const cell = document.createElement('td');
+        cell.style.border = '1px solid #ddd';
         const span = document.createElement('span');
         span.contentEditable = isDesignMode ? 'false' : 'true';
         span.textContent = `New Cell ${++newCellCounter}`;
@@ -1241,6 +1475,7 @@ function addColumn() {
 
     rows.forEach((row, rowIndex) => {
         const cell = document.createElement(rowIndex === 0 ? 'th' : 'td');
+        cell.style.border = '1px solid #ddd';
         const span = document.createElement('span');
         span.contentEditable = isDesignMode ? 'false' : 'true';
         span.textContent = rowIndex === 0 ? `Header ${row.children.length + 1}` : `Cell ${rowIndex},${row.children.length + 1}`;
@@ -1380,6 +1615,7 @@ function addRowAbove() {
 
     for (let i = 0; i < cellsNeeded; i++) {
         const cell = document.createElement('td');
+        cell.style.border = '1px solid #ddd';
         const span = document.createElement('span');
         span.contentEditable = isDesignMode ? 'false' : 'true';
         span.textContent = `New Cell ${++newCellCounter}`;
@@ -1427,6 +1663,7 @@ function addRowBelow() {
 
     for (let i = 0; i < cellsNeeded; i++) {
         const cell = document.createElement('td');
+        cell.style.border = '1px solid #ddd';
         const span = document.createElement('span');
         span.contentEditable = isDesignMode ? 'false' : 'true';
         span.textContent = `New Cell ${++newCellCounter}`;
@@ -1562,6 +1799,7 @@ function addColumnLeft() {
         }
 
         const newCell = document.createElement(rowIdx === 0 ? 'th' : 'td');
+        newCell.style.border = '1px solid #ddd';
         const span = document.createElement('span');
         span.contentEditable = isDesignMode ? 'false' : 'true';
         span.textContent = rowIdx === 0 ? `New Header ${++newCellCounter}` : `New Cell ${++newCellCounter}`;
@@ -1683,6 +1921,7 @@ function addColumnRight() {
         }
 
         const newCell = document.createElement(rowIdx === 0 ? 'th' : 'td');
+        newCell.style.border = '1px solid #ddd';
         const span = document.createElement('span');
         span.contentEditable = isDesignMode ? 'false' : 'true';
         span.textContent = rowIdx === 0 ? `New Header ${++newCellCounter}` : `New Cell ${++newCellCounter}`;
@@ -1978,6 +2217,7 @@ function splitSelectedCell() {
 
             const targetRow = table.querySelectorAll('tr')[rowIndex + r];
             const newCell = document.createElement(targetRow.parentNode.tagName === 'THEAD' ? 'th' : 'td');
+            newCell.style.border = '1px solid #ddd';
             const span = document.createElement('span');
             span.contentEditable = isDesignMode ? 'false' : 'true';
             span.textContent = '';
@@ -1996,6 +2236,30 @@ function splitSelectedCell() {
     }
 
     clearSelection();
+    hideContextMenu();
+}
+
+function toggleCellInvisible() {
+    if (selectedCells.length === 0) {
+        alert('Please select at least one cell');
+        return;
+    }
+
+    selectedCells.forEach(cell => {
+        // Check if cell is currently invisible
+        const isInvisible = cell.style.border === 'none' || cell.style.border === '';
+
+        if (isInvisible) {
+            // Make visible - restore default styling
+            cell.style.border = '';
+            cell.style.backgroundColor = '';
+        } else {
+            // Make invisible - remove border and background
+            cell.style.border = 'none';
+            cell.style.backgroundColor = 'transparent';
+        }
+    });
+
     hideContextMenu();
 }
 
@@ -2865,7 +3129,15 @@ function addColumnDragHandle(headerCell, columnIndex) {
 }
 
 // Add drag over and drop handlers to table rows
+// Clear localStorage on page unload
+window.addEventListener('beforeunload', function() {
+    localStorage.removeItem('documentEditorUndoStack');
+});
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize undo system
+    initializeUndoSystem();
+
     document.addEventListener('dragover', (e) => {
         e.preventDefault();
 

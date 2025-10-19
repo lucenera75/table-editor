@@ -170,7 +170,6 @@
         }
 
         th, td {
-            border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
             position: relative;
@@ -537,30 +536,30 @@
             <table id="mainTable">
                 <thead>
                     <tr>
-                        <th onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">1</span></th>
-                        <th onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">2</span></th>
-                        <th onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">3</span></th>
-                        <th onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">4</span></th>
+                        <th style="border: 1px solid #ddd;" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">1</span></th>
+                        <th style="border: 1px solid #ddd;" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">2</span></th>
+                        <th style="border: 1px solid #ddd;" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">3</span></th>
+                        <th style="border: 1px solid #ddd;" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">4</span></th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">5</span></td>
-                        <td onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">6</span></td>
-                        <td onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">7</span></td>
-                        <td onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">8</span></td>
+                        <td style="border: 1px solid #ddd;" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">5</span></td>
+                        <td style="border: 1px solid #ddd;" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">6</span></td>
+                        <td style="border: 1px solid #ddd;" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">7</span></td>
+                        <td style="border: 1px solid #ddd;" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">8</span></td>
                     </tr>
                     <tr>
-                        <td onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">9</span></td>
-                        <td onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">10</span></td>
-                        <td onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">11</span></td>
-                        <td onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">12</span></td>
+                        <td style="border: 1px solid #ddd;" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">9</span></td>
+                        <td style="border: 1px solid #ddd;" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">10</span></td>
+                        <td style="border: 1px solid #ddd;" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">11</span></td>
+                        <td style="border: 1px solid #ddd;" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">12</span></td>
                     </tr>
                     <tr>
-                        <td onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">13</span></td>
-                        <td onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">14</span></td>
-                        <td onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">15</span></td>
-                        <td onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">16</span></td>
+                        <td style="border: 1px solid #ddd;" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">13</span></td>
+                        <td style="border: 1px solid #ddd;" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">14</span></td>
+                        <td style="border: 1px solid #ddd;" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">15</span></td>
+                        <td style="border: 1px solid #ddd;" onmousedown="selectCell(this, event)" oncontextmenu="showContextMenu(event, this)"><span contenteditable="false">16</span></td>
                     </tr>
                 </tbody>
             </table>
@@ -584,6 +583,8 @@
         <div class="separator"></div>
         <button onclick="mergeSelectedCells()">Merge Cells</button>
         <button onclick="splitSelectedCell()">Split Cell</button>
+        <div class="separator"></div>
+        <button onclick="toggleCellInvisible()">Toggle Invisible</button>
         <div class="separator"></div>
         <button onclick="pasteAsPlainText()">Paste as Plain Text</button>
         <div class="separator"></div>
