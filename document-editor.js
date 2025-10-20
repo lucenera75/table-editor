@@ -97,12 +97,33 @@ function captureSnapshot() {
     };
 }
 
+// Normalize HTML for comparison - remove UI-only classes and attributes
+function normalizeHtmlForComparison(html) {
+    // Create a temporary div to parse and clean the HTML
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+
+    // Remove UI-only classes from all elements
+    const allElements = temp.querySelectorAll('*');
+    allElements.forEach(el => {
+        // Remove selection and navigation classes
+        el.classList.remove('cell-selected', 'editing-mode', 'drag-over', 'col-drag-over');
+
+        // If no classes left, remove the class attribute entirely
+        if (el.classList.length === 0) {
+            el.removeAttribute('class');
+        }
+    });
+
+    return temp.innerHTML;
+}
+
 // Start automatic snapshot timer
 function startSnapshotTimer() {
     // Take initial snapshot
     const initial = captureSnapshot();
     if (initial) {
-        lastSnapshot = initial.html;
+        lastSnapshot = normalizeHtmlForComparison(initial.html);
         undoStack.push(initial);
         saveUndoStackToStorage();
         console.log('Initial snapshot captured');
@@ -112,9 +133,9 @@ function startSnapshotTimer() {
     snapshotIntervalId = setInterval(() => {
         if (isUndoRedoInProgress) return;
 
-        const current = document.body.innerHTML;
+        const current = normalizeHtmlForComparison(document.body.innerHTML);
 
-        // Compare with last snapshot
+        // Compare normalized HTML with last snapshot
         if (current !== lastSnapshot) {
             const snapshot = captureSnapshot();
             if (snapshot) {
@@ -155,7 +176,7 @@ function restoreSnapshot(snapshot) {
     try {
         // Restore the entire body
         document.body.innerHTML = snapshot.html;
-        lastSnapshot = snapshot.html;
+        lastSnapshot = normalizeHtmlForComparison(snapshot.html);
 
         console.log('Snapshot restored from', new Date(snapshot.timestamp).toLocaleTimeString());
 

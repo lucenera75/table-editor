@@ -820,6 +820,53 @@
             assertEquals(selectedCells.length, selectedCount, 'Selection should be preserved in new table after mouseup');
         }
 
+        async function test_undoIgnoresUIChanges() {
+            // Test that selection and navigation don't create undo snapshots
+
+            // Create a test table
+            const table = createDynamicTable(3, 3);
+            document.body.appendChild(table);
+
+            // Wait for initial snapshot
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            const initialStackSize = undoStack.length;
+
+            // Perform UI-only operations (selection and navigation)
+            const cells = table.querySelectorAll('td');
+
+            // Select first cell
+            if (cells[0]) {
+                cells[0].click();
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            // Navigate to another cell
+            if (cells[1]) {
+                cells[1].click();
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            // Select multiple cells
+            if (cells[2] && cells[3]) {
+                const mousedownEvent = new MouseEvent('mousedown', { bubbles: true, cancelable: true, button: 0 });
+                cells[2].dispatchEvent(mousedownEvent);
+
+                const mouseoverEvent = new MouseEvent('mouseover', { bubbles: true, cancelable: true });
+                cells[3].dispatchEvent(mouseoverEvent);
+
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            // Wait for snapshot timer (1 second + buffer)
+            await new Promise(resolve => setTimeout(resolve, 1200));
+
+            // Check that no new snapshots were created
+            assertEquals(undoStack.length, initialStackSize, 'UI changes should not create undo snapshots');
+
+            // Clean up
+            table.remove();
+        }
+
         // Test runner
         const tests = [
             { name: 'Table Creation', fn: test_tableCreation },
@@ -847,7 +894,8 @@
             { name: 'Delete Column in Created Table', fn: test_deleteColumnInCreatedTable },
             { name: 'Merge Cells in Created Table', fn: test_mergeCellsInCreatedTable },
             { name: 'Drag Selection Preserved on Mouseup', fn: test_dragSelectionPreservedOnMouseup },
-            { name: 'Drag Selection Preserved in New Table', fn: test_dragSelectionPreservedInNewTable }
+            { name: 'Drag Selection Preserved in New Table', fn: test_dragSelectionPreservedInNewTable },
+            { name: 'Undo Ignores UI Changes', fn: test_undoIgnoresUIChanges }
         ];
 
         async function runAllTests() {
