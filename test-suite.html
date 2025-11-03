@@ -107,8 +107,52 @@
         <div id="textColorLabel"></div>
     </div>
 
-    <script src="document-editor.js"></script>
+    <script type="module">
+        console.log('Module script starting...');
+
+        // Import all modules and expose them globally for tests
+        import * as main from './src/main.js';
+
+        console.log('Modules imported, assigning to window...');
+
+        // Make all exports available globally
+        // For functions, assign directly
+        // For state variables, create getters so tests always read current values
+        const stateVars = ['selectedCells', 'selectedRow', 'selectedColumn', 'contextMenuTarget',
+                           'currentCell', 'anchorCell', 'isEditMode', 'isMouseSelecting',
+                           'selectionStartCell', 'newCellCounter', 'isResizing', 'resizeType',
+                           'resizeTarget', 'startX', 'startY', 'startWidth', 'startHeight',
+                           'resizeLine', 'savedSelection', 'isInputFocused', 'menuHideTimeout',
+                           'undoStack', 'redoStack', 'lastSnapshot', 'SNAPSHOT_INTERVAL_MS',
+                           'MAX_UNDO_STATES', 'isUndoRedoInProgress', 'snapshotIntervalId',
+                           'isDesignMode', 'draggedRow', 'draggedColumn', 'currentBgColor', 'currentTextColor'];
+
+        for (const [key, value] of Object.entries(main)) {
+            if (stateVars.includes(key)) {
+                // Create getter that always returns current value from module
+                Object.defineProperty(window, key, {
+                    get() { return main[key]; },
+                    configurable: true
+                });
+            } else {
+                // Functions and setters can be assigned directly
+                window[key] = value;
+            }
+        }
+
+        console.log('Modules assigned to window, setting modulesLoaded flag...');
+
+        // Mark modules as loaded
+        window.modulesLoaded = true;
+
+        // Dispatch event when modules are loaded
+        window.dispatchEvent(new Event('modulesLoaded'));
+
+        console.log('Module initialization complete, modulesLoaded =', window.modulesLoaded);
+    </script>
     <script>
+        console.log('Regular script starting...');
+
         let testResults = [];
         let currentTest = null;
 
@@ -229,7 +273,7 @@
             const initialRows = table.querySelectorAll('tbody tr').length;
             const cell = table.querySelector('td');
             selectCell(cell);
-            contextMenuTarget = cell;
+            setContextMenuTarget(cell);
             addRowBelow();
 
             assertEquals(table.querySelectorAll('tbody tr').length, initialRows + 1, 'Should have one more row');
@@ -245,7 +289,7 @@
             const initialCols = table.querySelectorAll('thead th').length;
             const cell = table.querySelector('td');
             selectCell(cell);
-            contextMenuTarget = cell;
+            setContextMenuTarget(cell);
             addColumnRight();
 
             assertEquals(table.querySelectorAll('thead th').length, initialCols + 1, 'Should have one more column');
@@ -261,7 +305,7 @@
             const initialRows = table.querySelectorAll('tbody tr').length;
             const cell = table.querySelectorAll('tbody tr')[1].querySelector('td');
             selectCell(cell);
-            contextMenuTarget = cell;
+            setContextMenuTarget(cell);
             deleteSelectedRow();
 
             assertEquals(table.querySelectorAll('tbody tr').length, initialRows - 1, 'Should have one less row');
@@ -277,7 +321,7 @@
             const initialCols = table.querySelectorAll('thead th').length;
             const cell = table.querySelectorAll('td')[1];
             selectCell(cell);
-            contextMenuTarget = cell;
+            setContextMenuTarget(cell);
             deleteSelectedColumn();
 
             assertEquals(table.querySelectorAll('thead th').length, initialCols - 1, 'Should have one less column');
@@ -291,7 +335,7 @@
             testArea.appendChild(table);
 
             const cells = table.querySelectorAll('tbody tr:first-child td');
-            selectedCells = [cells[0], cells[1]];
+            setSelectedCells([cells[0], cells[1]]);
             cells[0].classList.add('cell-selected');
             cells[1].classList.add('cell-selected');
 
@@ -407,7 +451,7 @@
             testArea.appendChild(table);
 
             const cell = table.querySelector('td');
-            contextMenuTarget = cell;
+            setContextMenuTarget(cell);
 
             let thead = table.querySelector('thead');
             assert(thead !== null, 'Should have thead');
@@ -420,7 +464,7 @@
             assertEquals(thead.style.display, 'none', 'Headers should be hidden');
 
             // Second toggle - show headers
-            contextMenuTarget = cell; // Reset target since hideContextMenu clears it
+            setContextMenuTarget(cell); // Reset target since hideContextMenu clears it
             toggleTableHeaders();
             await new Promise(resolve => setTimeout(resolve, 10));
             thead = table.querySelector('thead');
@@ -674,7 +718,7 @@
             const initialRows = newTable.querySelectorAll('tbody tr').length;
             const cell = newTable.querySelector('td');
             selectCell(cell);
-            contextMenuTarget = cell;
+            setContextMenuTarget(cell);
             addRowBelow();
 
             assertEquals(newTable.querySelectorAll('tbody tr').length, initialRows + 1, 'Should add row in created table');
@@ -691,7 +735,7 @@
             const initialCols = rows[0].children.length;
             const cell = newTable.querySelector('td');
             selectCell(cell);
-            contextMenuTarget = cell;
+            setContextMenuTarget(cell);
             addColumnRight();
 
             assertEquals(rows[0].children.length, initialCols + 1, 'Should add column in created table');
@@ -707,7 +751,7 @@
             const initialRows = newTable.querySelectorAll('tbody tr').length;
             const cell = newTable.querySelectorAll('tbody tr')[1].querySelector('td');
             selectCell(cell);
-            contextMenuTarget = cell;
+            setContextMenuTarget(cell);
             deleteSelectedRow();
 
             assertEquals(newTable.querySelectorAll('tbody tr').length, initialRows - 1, 'Should delete row in created table');
@@ -723,7 +767,7 @@
             const initialCols = newTable.querySelectorAll('tr')[0].children.length;
             const cell = newTable.querySelectorAll('td')[1];
             selectCell(cell);
-            contextMenuTarget = cell;
+            setContextMenuTarget(cell);
             deleteSelectedColumn();
 
             assertEquals(newTable.querySelectorAll('tr')[0].children.length, initialCols - 1, 'Should delete column in created table');
@@ -737,7 +781,7 @@
             testArea.appendChild(newTable);
 
             const cells = newTable.querySelectorAll('tbody tr:first-child td');
-            selectedCells = [cells[0], cells[1]];
+            setSelectedCells([cells[0], cells[1]]);
             cells[0].classList.add('cell-selected');
             cells[1].classList.add('cell-selected');
 
@@ -899,6 +943,15 @@
         ];
 
         async function runAllTests() {
+            // Wait for modules to load
+            if (!window.modulesLoaded) {
+                await new Promise(resolve => {
+                    window.addEventListener('modulesLoaded', resolve, { once: true });
+                });
+                // Give extra time for initialization
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
             testResults = [];
             const resultsDiv = document.getElementById('testResults');
             resultsDiv.innerHTML = '';
@@ -930,9 +983,9 @@
                 }
 
                 // Clean up
-                selectedCells = [];
-                currentCell = null;
-                savedSelection = null;
+                setSelectedCells([]);
+                setCurrentCell(null);
+                setSavedSelection(null);
 
                 await new Promise(resolve => setTimeout(resolve, 10));
             }
