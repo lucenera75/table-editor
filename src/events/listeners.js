@@ -1,6 +1,7 @@
 // Event listeners setup
 import { savedSelection, isInputFocused, menuHideTimeout, draggedRow, draggedColumn,
-         setIsInputFocused, setSavedSelection, setMenuHideTimeout } from '../state/variables.js';
+         selectedCells, currentCell, isEditMode,
+         setIsInputFocused, setSavedSelection, setMenuHideTimeout, setCurrentCell, setIsEditMode } from '../state/variables.js';
 import { undo } from '../undo/undo.js';
 import { redo } from '../undo/redo.js';
 import { hideContextMenu } from '../menus/hideContextMenu.js';
@@ -342,8 +343,10 @@ export function setupEventListeners() {
     // Color picker dropdown close handler
     document.addEventListener('click', function(e) {
         if (!e.target.closest('.color-picker-container') && !e.target.closest('.context-menu')) {
-            document.getElementById('bgColorDropdown').classList.remove('show');
-            document.getElementById('textColorDropdown').classList.remove('show');
+            const bgDropdown = document.getElementById('bgColorDropdown');
+            const textDropdown = document.getElementById('textColorDropdown');
+            if (bgDropdown) bgDropdown.classList.remove('show');
+            if (textDropdown) textDropdown.classList.remove('show');
         }
     });
 }

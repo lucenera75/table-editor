@@ -1,4 +1,5 @@
 import { currentCell, isMouseSelecting, selectedCells, setIsMouseSelecting } from '../state/variables.js';
+import { handleMouseOverCell } from './handleMouseOverCell.js';
 
 export function stopMouseSelection() {
     console.log('=== stopMouseSelection CALLED ===');

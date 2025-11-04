@@ -1,4 +1,5 @@
 import { isResizing, resizeLine, resizeTarget, resizeType, setIsResizing, setResizeLine, setResizeTarget, setResizeType } from '../state/variables.js';
+import { handleResize } from './handleResize.js';
 
 export function stopResize() {
     if (!isResizing) return;

@@ -1,4 +1,6 @@
 import { isResizing, resizeLine, resizeTarget, resizeType, setIsResizing, setResizeLine, setResizeTarget, setResizeType, setStartHeight, setStartWidth, setStartX, setStartY, startHeight, startWidth, startX, startY } from '../state/variables.js';
+import { handleResize } from './handleResize.js';
+import { stopResize } from './stopResize.js';
 
 export function startResize(e, type, cell) {
     e.preventDefault();

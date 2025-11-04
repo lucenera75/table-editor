@@ -48,6 +48,7 @@ import { splitTable } from './table/splitTable.js';
 import { deleteTable } from './table/deleteTable.js';
 import { deleteTableFromContext } from './table/deleteTableFromContext.js';
 import { toggleTableHeaders } from './table/toggleTableHeaders.js';
+import { initializeExistingTables } from './table/initializeExistingTables.js';
 
 import { deleteCell } from './cells/deleteCell.js';
 import { mergeSelectedCells } from './cells/mergeSelectedCells.js';
@@ -119,6 +120,7 @@ export {
     moveRowUp, moveRowDown, sortColumnAZ, sortColumnZA, sortColumn,
     getTableColumnCount, getCellsNeededForRow, getColumnPosition,
     splitTable, deleteTable, deleteTableFromContext, toggleTableHeaders,
+    initializeExistingTables,
     deleteCell, mergeSelectedCells, areSelectedCellsAdjacent, splitSelectedCell,
     toggleCellInvisible, toggleVerticalText,
     updateFormatControls, rgbToHex, applyAlignmentFromContext, applyVerticalAlignmentFromContext,
@@ -229,6 +231,7 @@ if (typeof window !== 'undefined') {
     window.deleteTable = deleteTable;
     window.toggleMode = toggleMode;
     window.createDynamicTable = createDynamicTable;
+    window.initializeExistingTables = initializeExistingTables;
 }
 
 // Initialize on DOM ready
@@ -241,6 +244,9 @@ if (document.readyState === 'loading') {
 function initialize() {
     // Create menu elements
     createMenuElements();
+
+    // Initialize existing tables with event handlers
+    initializeExistingTables();
 
     // Initialize undo system
     initializeUndoSystem();

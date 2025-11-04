@@ -184,6 +184,189 @@ function injectMenuStyles() {
         .color-option:hover {
             background-color: #f0f0f0;
         }
+
+        /* Drag handles */
+        .row-drag-handle {
+            position: absolute;
+            left: -20px;
+            top: 0;
+            height: 100%;
+            width: 20px;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+            user-select: none;
+            color: #999;
+        }
+
+        tr:hover .row-drag-handle {
+            opacity: 1;
+        }
+
+        .row-drag-handle:hover {
+            color: #007bff;
+        }
+
+        .row-drag-handle::before {
+            content: '⋮⋮';
+            font-size: 12px;
+            letter-spacing: -2px;
+        }
+
+        .col-drag-handle {
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+            user-select: none;
+            color: #999;
+        }
+
+        th:hover .col-drag-handle,
+        td:hover .col-drag-handle {
+            opacity: 1;
+        }
+
+        .col-drag-handle:hover {
+            color: #007bff;
+        }
+
+        .col-drag-handle::before {
+            content: '⋮⋮';
+            font-size: 12px;
+            letter-spacing: -2px;
+            transform: rotate(90deg);
+        }
+
+        /* Resize handles */
+        .resize-handle-col {
+            position: absolute;
+            top: 0;
+            right: -3px;
+            width: 6px;
+            height: 100%;
+            cursor: col-resize;
+            background: transparent;
+            z-index: 10;
+        }
+
+        .resize-handle-col::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 2px;
+            height: 20px;
+            background: #007bff;
+            border-radius: 1px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .resize-handle-col:hover::after {
+            opacity: 1;
+        }
+
+        .resize-handle-col:hover {
+            background: rgba(0, 123, 255, 0.1);
+        }
+
+        .resize-handle-row {
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            cursor: row-resize;
+            background: transparent;
+            z-index: 10;
+        }
+
+        .resize-handle-row::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 2px;
+            background: #007bff;
+            border-radius: 1px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .resize-handle-row:hover::after {
+            opacity: 1;
+        }
+
+        .resize-handle-row:hover {
+            background: rgba(0, 123, 255, 0.1);
+        }
+
+        .resize-handle-corner {
+            position: absolute;
+            bottom: -3px;
+            right: -3px;
+            width: 8px;
+            height: 8px;
+            cursor: nwse-resize;
+            background: transparent;
+            z-index: 15;
+        }
+
+        .resize-handle-corner::after {
+            content: '';
+            position: absolute;
+            bottom: 1px;
+            right: 1px;
+            width: 4px;
+            height: 4px;
+            background: #ccc;
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .resize-handle-corner:hover::after {
+            opacity: 1;
+            background: #007bff;
+        }
+
+        .resize-handle-corner:hover {
+            background: rgba(0, 123, 255, 0.2);
+        }
+
+        /* Cell selection styles */
+        .cell-selected {
+            background-color: #e3f2fd !important;
+            outline: 2px solid #2196F3;
+            outline-offset: -2px;
+        }
+
+        .editing-mode {
+            outline: 2px solid #4CAF50 !important;
+        }
+
+        /* Drag and drop styles */
+        .drag-over {
+            border-top: 3px solid #007bff !important;
+        }
+
+        .col-drag-over {
+            border-left: 3px solid #007bff !important;
+        }
     `;
 
     document.head.appendChild(style);

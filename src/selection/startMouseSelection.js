@@ -1,6 +1,8 @@
 import { anchorCell, currentCell, isMouseSelecting, isResizing, selectedCells, selectionStartCell, setAnchorCell, setCurrentCell, setIsMouseSelecting, setSelectionStartCell, setSelectedCells } from '../state/variables.js';
 import { clearSelection } from './clearSelection.js';
 import { updateFormatControls } from '../formatting/updateFormatControls.js';
+import { handleMouseOverCell } from './handleMouseOverCell.js';
+import { stopMouseSelection } from './stopMouseSelection.js';
 
 export function startMouseSelection(cell) {
     console.log('=== startMouseSelection CALLED ===');
