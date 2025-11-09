@@ -8,22 +8,30 @@ export function updateFormatButtons() {
     const underlineBtn = document.getElementById('underlineBtn');
     const strikeBtn = document.getElementById('strikeBtn');
 
-    // Check if all cells have each format
+    // Check if all cells have each format (check span inside cell if it exists)
     const allBold = selectedCells.every(cell => {
-        const weight = window.getComputedStyle(cell).fontWeight;
+        const span = cell.querySelector('span');
+        const target = span || cell;
+        const weight = window.getComputedStyle(target).fontWeight;
         return weight === 'bold' || weight === '700';
     });
 
     const allItalic = selectedCells.every(cell => {
-        return window.getComputedStyle(cell).fontStyle === 'italic';
+        const span = cell.querySelector('span');
+        const target = span || cell;
+        return window.getComputedStyle(target).fontStyle === 'italic';
     });
 
     const allUnderlined = selectedCells.every(cell => {
-        return window.getComputedStyle(cell).textDecoration.includes('underline');
+        const span = cell.querySelector('span');
+        const target = span || cell;
+        return window.getComputedStyle(target).textDecoration.includes('underline');
     });
 
     const allStrikethrough = selectedCells.every(cell => {
-        return window.getComputedStyle(cell).textDecoration.includes('line-through');
+        const span = cell.querySelector('span');
+        const target = span || cell;
+        return window.getComputedStyle(target).textDecoration.includes('line-through');
     });
 
     // Update button states - only show active if ALL cells have the format

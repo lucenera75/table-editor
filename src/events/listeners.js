@@ -256,6 +256,13 @@ export function setupEventListeners() {
             return;
         }
 
+        // Handle Enter key to enter edit mode
+        if (e.key === 'Enter') {
+            enterEditMode();
+            e.preventDefault();
+            return;
+        }
+
         // Keyboard navigation would go here
         // (Omitted for brevity - would need imports for navigateToCell, extendSelection, etc.)
     });

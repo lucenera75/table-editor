@@ -1,4 +1,5 @@
 import { savedSelection, selectedCells, setSavedSelection } from '../state/variables.js';
+import { updateTextFormatControls } from '../text/showTextFormatMenu.js';
 
 export function applyTextFontSize() {
     const fontSize = document.getElementById('textFontSize').value;
@@ -54,5 +55,8 @@ export function applyTextFontSize() {
             selection.removeAllRanges();
             selection.addRange(newRange);
         }
+
+        // Update text format controls after applying
+        setTimeout(() => updateTextFormatControls(), 10);
     }
 }
