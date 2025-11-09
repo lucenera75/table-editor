@@ -12,8 +12,8 @@ export function toggleVerticalText() {
         if (!span) return;
 
         // Check if text is currently vertical
-        const isVertical = span.style.writingMode === 'vertical-rl' ||
-                          span.style.transform === 'rotate(90deg)';
+        const isVertical = span.style.writingMode === 'vertical-lr' ||
+                          span.style.transform === 'rotate(180deg)';
 
         if (isVertical) {
             // Make horizontal - restore normal
@@ -22,7 +22,8 @@ export function toggleVerticalText() {
             span.style.textOrientation = '';
         } else {
             // Make vertical - rotate 90 degrees
-            span.style.writingMode = 'vertical-rl';
+            span.style.writingMode = 'vertical-lr';
+            span.style.transform = 'rotate(180deg)';
             span.style.textOrientation = 'mixed';
         }
     });

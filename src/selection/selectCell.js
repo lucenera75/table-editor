@@ -1,4 +1,4 @@
-import { anchorCell, currentCell, isEditMode, isMouseSelecting, isResizing, selectedCells, setAnchorCell, setCurrentCell, setSelectedCells } from '../state/variables.js';
+import { anchorCell, currentCell, isEditMode, isMouseSelecting, isResizing, selectedCells, setAnchorCell, setCurrentCell, setSelectedCells, isDesignMode } from '../state/variables.js';
 import { clearSelection } from './clearSelection.js';
 import { startMouseSelection } from './startMouseSelection.js';
 import { selectRange } from './selectRange.js';
@@ -20,6 +20,25 @@ export function selectCell(cell, event = null) {
     if (isResizing) {
         console.log('RETURN: isResizing');
         return;
+    }
+
+    // Ensure cell has proper span structure
+    const hasProperSpan = cell.firstElementChild?.tagName === 'SPAN' &&
+                         cell.firstElementChild.hasAttribute('contenteditable');
+
+    if (!hasProperSpan) {
+        console.log('Cell missing proper span, reinitializing');
+        // Get all current content
+        const currentContent = cell.innerHTML;
+
+        // Create a span to wrap the content
+        const span = document.createElement('span');
+        span.contentEditable = isDesignMode ? 'false' : 'true';
+        span.innerHTML = currentContent;
+
+        // Clear cell and add the span
+        cell.innerHTML = '';
+        cell.appendChild(span);
     }
 
     // Don't clear multi-selection if we're just finishing a drag operation

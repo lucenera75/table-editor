@@ -135,11 +135,22 @@ Two scenarios:
 1. **Existing tables** (in HTML): `initializeExistingTables()` scans and attaches handlers
 2. **New tables** (via menu): `createTableFromMenu()` creates with handlers pre-attached
 
+**CRITICAL**: All table cells must have their content wrapped in a `<span>` element:
+- The span must have `contentEditable="true"` (or "false" in design mode)
+- This allows formatting operations (vertical text, colors, etc.) to work properly
+- `initializeExistingTables()` automatically wraps unwrapped content
+
 When creating new cells programmatically:
 ```javascript
 cell.onmousedown = function(e) { selectCell(this, e); };
 cell.oncontextmenu = function(e) { showContextMenu(e, this); };
 cell.style.position = 'relative'; // Required for resize handles
+
+// Wrap content in span
+const span = document.createElement('span');
+span.contentEditable = 'true';
+span.textContent = 'Cell content';
+cell.appendChild(span);
 ```
 
 ### Resize Handles
