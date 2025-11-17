@@ -1,0 +1,11 @@
+pseudocode for pagination:
+everytime there is an edit wait for 1 second and run the repaginate function, (debounce it appropriately, if necessary)
+
+the repaginate function will
+declare an array of pageClasses = ["portrait-content", "landscape-content"]
+those are pages
+
+iterate over pages and get all direct childrens that are statically positioned, if any of the children is not fully visible cut that element and all the following elements
+    check if the next page has the same classeName, if it does add the elements as first children
+    otherwise create another page with the same className and put the elements there
+
