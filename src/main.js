@@ -5,6 +5,7 @@ import { setupEventListeners } from './events/listeners.js';
 import { initializeUndoSystem } from './undo/initializeUndoSystem.js';
 import { initializeResizeHandles } from './resize/initializeResizeHandles.js';
 import { createMenuElements } from './menus/createMenuElements.js';
+import { handlePagination } from './pagination/handlePagination.js';
 
 // Import and export all state variables
 export * from './state/variables.js';
@@ -138,7 +139,8 @@ export {
     toggleMode,
     initializeUndoSystem, saveUndoStackToStorage, captureSnapshot, normalizeHtmlForComparison,
     startSnapshotTimer, stopSnapshotTimer, restoreSnapshot, reinitializeAfterRestore,
-    undo, redo
+    undo, redo,
+    handlePagination
 };
 
 // Helper function to create a dynamic table
@@ -232,6 +234,7 @@ if (typeof window !== 'undefined') {
     window.toggleMode = toggleMode;
     window.createDynamicTable = createDynamicTable;
     window.initializeExistingTables = initializeExistingTables;
+    window.handlePagination = handlePagination;
 }
 
 // Initialize on DOM ready
@@ -256,6 +259,33 @@ function initialize() {
 
     // Setup all event listeners
     setupEventListeners();
+
+    // Initial pagination check
+    setTimeout(() => handlePagination(), 100);
+
+    // Set up pagination checks (debounced to 1 second after content changes)
+    let paginationTimeout;
+    const paginationObserver = new MutationObserver(() => {
+        // Debounce: wait 1 second after last edit
+        clearTimeout(paginationTimeout);
+        paginationTimeout = setTimeout(() => {
+            console.log('Content changed, running pagination...');
+            handlePagination();
+        }, 1000);
+    });
+
+    // Observe all page containers for changes
+    document.querySelectorAll('.portrait-content, .landscape-content').forEach(page => {
+        paginationObserver.observe(page, {
+            childList: true,
+            subtree: true,
+            characterData: true,
+            attributes: false
+        });
+    });
+
+    // Expose observer globally
+    window.paginationObserver = paginationObserver;
 
     console.log('Document editor initialized (modular version)');
 }
