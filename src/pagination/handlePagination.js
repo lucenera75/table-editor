@@ -38,6 +38,80 @@ function repaginate() {
     });
 }
 
+function tryPullFromNextPage(currentPage, currentPageRect, currentPageHeight, currentStaticChildren) {
+    // Check if there's a next page with same className
+    const nextPage = currentPage.nextElementSibling;
+    const hasMatchingNextPage = nextPage && (
+        (currentPage.classList.contains('portrait-content') && nextPage.classList.contains('portrait-content')) ||
+        (currentPage.classList.contains('landscape-content') && nextPage.classList.contains('landscape-content'))
+    );
+
+    if (!hasMatchingNextPage) {
+        return; // No next page to pull from
+    }
+
+    // Get static children from next page
+    const nextStaticChildren = Array.from(nextPage.children).filter(child => {
+        const position = window.getComputedStyle(child).position;
+        return position === 'static' || position === 'relative';
+    });
+
+    if (nextStaticChildren.length === 0) {
+        return; // Nothing to pull
+    }
+
+    // Calculate available space in current page
+    let currentContentBottom = currentPageRect.top;
+    if (currentStaticChildren.length > 0) {
+        const lastChild = currentStaticChildren[currentStaticChildren.length - 1];
+        currentContentBottom = lastChild.getBoundingClientRect().bottom;
+    }
+
+    const availableSpace = (currentPageRect.bottom - currentContentBottom) - 50; // 50px safety margin
+
+    console.log(`  Available space in current page: ${availableSpace}px`);
+
+    if (availableSpace <= 50) {
+        return; // Not enough space
+    }
+
+    // Try to pull elements from next page
+    let elementsToPull = [];
+    let accumulatedHeight = 0;
+
+    for (const nextChild of nextStaticChildren) {
+        const childRect = nextChild.getBoundingClientRect();
+        const childHeight = childRect.height;
+
+        if (accumulatedHeight + childHeight <= availableSpace) {
+            elementsToPull.push(nextChild);
+            accumulatedHeight += childHeight;
+        } else {
+            break; // Can't fit any more
+        }
+    }
+
+    if (elementsToPull.length > 0) {
+        console.log(`  ← Pulling ${elementsToPull.length} elements from next page`);
+
+        // Move elements to current page
+        elementsToPull.forEach(el => {
+            currentPage.appendChild(el);
+        });
+
+        // If next page is now empty (no static children), remove it
+        const remainingNextStatic = Array.from(nextPage.children).filter(child => {
+            const position = window.getComputedStyle(child).position;
+            return position === 'static' || position === 'relative';
+        });
+
+        if (remainingNextStatic.length === 0) {
+            console.log(`  Removing empty next page`);
+            nextPage.remove();
+        }
+    }
+}
+
 function processPage(page) {
     const pageRect = page.getBoundingClientRect();
     const pageHeight = pageRect.height;
@@ -51,10 +125,19 @@ function processPage(page) {
 
     console.log(`  Found ${staticChildren.length} static children`);
 
+    // First, try to pull elements from next page if this page has space
+    tryPullFromNextPage(page, pageRect, pageHeight, staticChildren);
+
+    // Re-get static children after potential pulls
+    const updatedChildren = Array.from(page.children).filter(child => {
+        const position = window.getComputedStyle(child).position;
+        return position === 'static' || position === 'relative';
+    });
+
     // Find first element that is not fully visible
     let cutIndex = -1;
-    for (let i = 0; i < staticChildren.length; i++) {
-        const child = staticChildren[i];
+    for (let i = 0; i < updatedChildren.length; i++) {
+        const child = updatedChildren[i];
         const childRect = child.getBoundingClientRect();
         const childHeight = childRect.height;
 
@@ -85,7 +168,7 @@ function processPage(page) {
     }
 
     // Cut this element and all following elements
-    const elementsToCut = staticChildren.slice(cutIndex);
+    const elementsToCut = updatedChildren.slice(cutIndex);
     console.log(`  Cutting ${elementsToCut.length} elements`);
 
     // Check if immediate next sibling has same className as current page
