@@ -141,7 +141,7 @@ export {
     startSnapshotTimer, stopSnapshotTimer, restoreSnapshot, reinitializeAfterRestore,
     undo, redo,
     handlePagination,
-    initializePagination
+    initPagination
 };
 
 // Helper function to create a dynamic table
@@ -185,7 +185,7 @@ export function createDynamicTable(rows, cols) {
 }
 
 // Helper function to initialize pagination for dynamically loaded content
-export function initializePagination() {
+export function initPagination() {
     // Run pagination immediately
     handlePagination();
 
@@ -275,7 +275,7 @@ if (typeof window !== 'undefined') {
     window.createDynamicTable = createDynamicTable;
     window.initializeExistingTables = initializeExistingTables;
     window.handlePagination = handlePagination;
-    window.initializePagination = initializePagination;
+    window.initPagination = initPagination;
 }
 
 // Initialize on DOM ready
@@ -302,7 +302,7 @@ function initialize() {
     setupEventListeners();
 
     // Initialize pagination (with observer)
-    setTimeout(() => initializePagination(), 2000);
+    setTimeout(() => initPagination(), 2000);
 
     console.log(
         '%c✨ Document Editor Initialized %c v2.0.2 %c\n%c📝 Modular ES6 • Table Support • Auto Pagination',
