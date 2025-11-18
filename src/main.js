@@ -140,7 +140,8 @@ export {
     initializeUndoSystem, saveUndoStackToStorage, captureSnapshot, normalizeHtmlForComparison,
     startSnapshotTimer, stopSnapshotTimer, restoreSnapshot, reinitializeAfterRestore,
     undo, redo,
-    handlePagination
+    handlePagination,
+    initializePagination
 };
 
 // Helper function to create a dynamic table
@@ -181,6 +182,45 @@ export function createDynamicTable(rows, cols) {
     table.appendChild(tbody);
 
     return table;
+}
+
+// Helper function to initialize pagination for dynamically loaded content
+export function initializePagination() {
+    // Run pagination immediately
+    handlePagination();
+
+    // Disconnect existing observer if any
+    if (window.paginationObserver) {
+        window.paginationObserver.disconnect();
+    }
+
+    // Set up new pagination observer
+    let paginationTimeout;
+    const paginationObserver = new MutationObserver(() => {
+        // Debounce: wait 1 second after last edit
+        clearTimeout(paginationTimeout);
+        paginationTimeout = setTimeout(() => {
+            console.log('Content changed, running pagination...');
+            handlePagination();
+        }, 1000);
+    });
+
+    // Observe all page containers for changes
+    const pages = document.querySelectorAll('.portrait-content, .landscape-content');
+    console.log(`Setting up pagination observer for ${pages.length} pages`);
+    pages.forEach(page => {
+        paginationObserver.observe(page, {
+            childList: true,
+            subtree: true,
+            characterData: true,
+            attributes: false
+        });
+    });
+
+    // Store observer globally
+    window.paginationObserver = paginationObserver;
+
+    return pages.length;
 }
 
 // Expose all functions globally for inline event handlers IMMEDIATELY
@@ -235,6 +275,7 @@ if (typeof window !== 'undefined') {
     window.createDynamicTable = createDynamicTable;
     window.initializeExistingTables = initializeExistingTables;
     window.handlePagination = handlePagination;
+    window.initializePagination = initializePagination;
 }
 
 // Initialize on DOM ready
@@ -260,32 +301,14 @@ function initialize() {
     // Setup all event listeners
     setupEventListeners();
 
-    // Initial pagination check
-    setTimeout(() => handlePagination(), 100);
+    // Initialize pagination (with observer)
+    setTimeout(() => initializePagination(), 2000);
 
-    // Set up pagination checks (debounced to 1 second after content changes)
-    let paginationTimeout;
-    const paginationObserver = new MutationObserver(() => {
-        // Debounce: wait 1 second after last edit
-        clearTimeout(paginationTimeout);
-        paginationTimeout = setTimeout(() => {
-            console.log('Content changed, running pagination...');
-            handlePagination();
-        }, 1000);
-    });
-
-    // Observe all page containers for changes
-    document.querySelectorAll('.portrait-content, .landscape-content').forEach(page => {
-        paginationObserver.observe(page, {
-            childList: true,
-            subtree: true,
-            characterData: true,
-            attributes: false
-        });
-    });
-
-    // Expose observer globally
-    window.paginationObserver = paginationObserver;
-
-    console.log('Document editor initialized (modular version)');
+    console.log(
+        '%c✨ Document Editor Initialized %c v2.0.2 %c\n%c📝 Modular ES6 • Table Support • Auto Pagination',
+        'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: bold; font-size: 16px; padding: 8px 16px; border-radius: 4px 4px 0 0;',
+        'background: #f7fafc; color: #667eea; font-weight: bold; font-size: 14px; padding: 8px 12px; border-radius: 0 0 0 0;',
+        '',
+        'background: #2d3748; color: #a0aec0; font-size: 12px; padding: 6px 16px; border-radius: 0 0 4px 4px; font-style: italic;'
+    );
 }
