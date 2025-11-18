@@ -38,7 +38,7 @@ function repaginate() {
     });
 }
 
-function tryPullFromNextPage(currentPage, currentPageRect, currentPageHeight, currentStaticChildren) {
+function tryPullFromNextPage(currentPage, currentPageRect, currentPageHeight, currentStaticChildren, effectiveBottom) {
     // Check if there's a next page with same className
     const nextPage = currentPage.nextElementSibling;
     const hasMatchingNextPage = nextPage && (
@@ -67,7 +67,7 @@ function tryPullFromNextPage(currentPage, currentPageRect, currentPageHeight, cu
         currentContentBottom = lastChild.getBoundingClientRect().bottom;
     }
 
-    const availableSpace = (currentPageRect.bottom - currentContentBottom) - 50; // 50px safety margin
+    const availableSpace = (effectiveBottom - currentContentBottom) - 50; // 50px safety margin
 
     console.log(`  Available space in current page: ${availableSpace}px`);
 
@@ -125,8 +125,35 @@ function processPage(page) {
 
     console.log(`  Found ${staticChildren.length} static children`);
 
+    // Find absolutely positioned headers and footers
+    const absoluteChildren = directChildren.filter(child => {
+        return window.getComputedStyle(child).position === 'absolute';
+    });
+
+    // Calculate effective page top (after header)
+    let effectiveTop = pageRect.top;
+    const headers = absoluteChildren.filter(el => {
+        const rect = el.getBoundingClientRect();
+        return rect.top <= pageRect.top + 50; // Header at top (within 50px of top)
+    });
+    if (headers.length > 0) {
+        effectiveTop = Math.max(...headers.map(h => h.getBoundingClientRect().bottom));
+    }
+
+    // Calculate effective page bottom (before footer)
+    let effectiveBottom = pageRect.bottom;
+    const footers = absoluteChildren.filter(el => {
+        const rect = el.getBoundingClientRect();
+        return rect.bottom >= pageRect.bottom - 50; // Footer at bottom (within 50px of bottom)
+    });
+    if (footers.length > 0) {
+        effectiveBottom = Math.min(...footers.map(f => f.getBoundingClientRect().top));
+    }
+
+    console.log(`  Effective bounds: top=${effectiveTop}, bottom=${effectiveBottom}`);
+
     // First, try to pull elements from next page if this page has space
-    tryPullFromNextPage(page, pageRect, pageHeight, staticChildren);
+    tryPullFromNextPage(page, pageRect, pageHeight, staticChildren, effectiveBottom);
 
     // Re-get static children after potential pulls
     const updatedChildren = Array.from(page.children).filter(child => {
@@ -136,18 +163,20 @@ function processPage(page) {
 
     // Find first element that is not fully visible
     let cutIndex = -1;
+    const effectivePageHeight = effectiveBottom - effectiveTop;
+
     for (let i = 0; i < updatedChildren.length; i++) {
         const child = updatedChildren[i];
         const childRect = child.getBoundingClientRect();
         const childHeight = childRect.height;
 
-        // Check if element is fully visible (bottom within page bounds)
-        const isFullyVisible = childRect.bottom <= pageRect.bottom + 10; // 10px tolerance
+        // Check if element is fully visible (bottom within effective page bounds)
+        const isFullyVisible = childRect.bottom <= effectiveBottom + 10; // 10px tolerance
 
         if (!isFullyVisible) {
-            // Check if this single element is taller than the page itself
-            if (childHeight > pageHeight - 50) { // 50px safety margin
-                console.log(`  → Element ${i} is too tall for a single page (${childHeight}px > ${pageHeight}px)`);
+            // Check if this single element is taller than the effective page height
+            if (childHeight > effectivePageHeight - 50) { // 50px safety margin
+                console.log(`  → Element ${i} is too tall for a single page (${childHeight}px > ${effectivePageHeight}px)`);
 
                 // Skip this element but continue checking from next element
                 // Move this oversized element to next page
