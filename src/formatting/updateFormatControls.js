@@ -11,8 +11,8 @@ export function updateFormatControls(cell) {
     const verticalAlignSelect = document.getElementById('contextVerticalAlignSelect');
     if (verticalAlignSelect) verticalAlignSelect.value = computedStyle.verticalAlign || 'middle';
 
-    const fontSizeInput = document.getElementById('contextFontSizeInput');
-    if (fontSizeInput) fontSizeInput.value = parseInt(computedStyle.fontSize) || 14;
+    const fontSizeDisplay = document.getElementById('contextFontSizeDisplay');
+    if (fontSizeDisplay) fontSizeDisplay.textContent = parseInt(computedStyle.fontSize) || 14;
 
     // Update background color picker
     const bgColor = computedStyle.backgroundColor;

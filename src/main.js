@@ -78,6 +78,10 @@ import { applyBackgroundColorFromContext } from './formatting/applyBackgroundCol
 import { applyTextColorFromContext } from './formatting/applyTextColorFromContext.js';
 import { resetFormatFromContext } from './formatting/resetFormatFromContext.js';
 import { applyTextFontSize } from './formatting/applyTextFontSize.js';
+import { increaseContextFontSize } from './formatting/increaseContextFontSize.js';
+import { decreaseContextFontSize } from './formatting/decreaseContextFontSize.js';
+import { increaseTextFontSize } from './formatting/increaseTextFontSize.js';
+import { decreaseTextFontSize } from './formatting/decreaseTextFontSize.js';
 import { selectTextMenuTextColor } from './formatting/selectTextMenuTextColor.js';
 import { selectTextMenuBgColor } from './formatting/selectTextMenuBgColor.js';
 import { toggleTextMenuTextColorDropdown } from './formatting/toggleTextMenuTextColorDropdown.js';
@@ -129,7 +133,9 @@ export {
     applyStyleToSelection, applyTextDecorationToSelection, updateFormatButtons,
     toggleBgColorDropdown, toggleTextColorDropdown, selectBgColor, selectTextColor,
     applyBackgroundColorFromContext, applyTextColorFromContext, resetFormatFromContext,
-    applyTextFontSize, selectTextMenuTextColor, selectTextMenuBgColor,
+    applyTextFontSize, increaseContextFontSize, decreaseContextFontSize,
+    increaseTextFontSize, decreaseTextFontSize,
+    selectTextMenuTextColor, selectTextMenuBgColor,
     toggleTextMenuTextColorDropdown, toggleTextMenuBgColorDropdown,
     showTextFormatMenu, hideTextFormatMenu, selectParentTag, clearTextFormat,
     createTableFromMenu, pasteAsPlainText,
@@ -263,6 +269,10 @@ if (typeof window !== 'undefined') {
     window.resetFormatFromContext = resetFormatFromContext;
     window.clearSelectionFromContext = clearSelectionFromContext;
     window.applyTextFontSize = applyTextFontSize;
+    window.increaseContextFontSize = increaseContextFontSize;
+    window.decreaseContextFontSize = decreaseContextFontSize;
+    window.increaseTextFontSize = increaseTextFontSize;
+    window.decreaseTextFontSize = decreaseTextFontSize;
     window.selectTextMenuTextColor = selectTextMenuTextColor;
     window.selectTextMenuBgColor = selectTextMenuBgColor;
     window.toggleTextMenuTextColorDropdown = toggleTextMenuTextColorDropdown;
@@ -276,6 +286,7 @@ if (typeof window !== 'undefined') {
     window.initializeExistingTables = initializeExistingTables;
     window.handlePagination = handlePagination;
     window.initPagination = initPagination;
+    window.enableRcPagination = initPagination
 }
 
 // Initialize on DOM ready
@@ -305,7 +316,7 @@ function initialize() {
     setTimeout(() => initPagination(), 2000);
 
     console.log(
-        '%c✨ Document Editor Initialized %c v2.0.2 %c\n%c📝 Modular ES6 • Table Support • Auto Pagination',
+        '%c✨ Document Editor Initialized %c v2.0.3 %c\n%c📝 Modular ES6 • Table Support • Auto Pagination',
         'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: bold; font-size: 16px; padding: 8px 16px; border-radius: 4px 4px 0 0;',
         'background: #f7fafc; color: #667eea; font-weight: bold; font-size: 14px; padding: 8px 12px; border-radius: 0 0 0 0;',
         '',

@@ -2,7 +2,10 @@ import { savedSelection, selectedCells, setSavedSelection } from '../state/varia
 import { updateTextFormatControls } from '../text/showTextFormatMenu.js';
 
 export function applyTextFontSize() {
-    const fontSize = document.getElementById('textFontSize').value;
+    const display = document.getElementById('textFontSizeDisplay');
+    if (!display) return;
+
+    const fontSize = parseInt(display.textContent) || 14;
     if (selectedCells.length > 0) {
         // Apply to table cells
         selectedCells.forEach(cell => {

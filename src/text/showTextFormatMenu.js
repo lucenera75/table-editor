@@ -46,11 +46,11 @@ export function updateTextFormatControls() {
     // Get computed style
     const computedStyle = window.getComputedStyle(element);
 
-    // Update font size input
-    const fontSizeInput = document.getElementById('textFontSize');
-    if (fontSizeInput) {
+    // Update font size display
+    const fontSizeDisplay = document.getElementById('textFontSizeDisplay');
+    if (fontSizeDisplay) {
         const fontSize = parseFloat(computedStyle.fontSize);
-        fontSizeInput.value = Math.round(fontSize);
+        fontSizeDisplay.textContent = Math.round(fontSize);
     }
 
     // Update bold button

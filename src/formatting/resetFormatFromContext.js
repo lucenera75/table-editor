@@ -13,7 +13,7 @@ export function resetFormatFromContext() {
     });
 
     document.getElementById('contextAlignSelect').value = 'left';
-    document.getElementById('contextFontSizeInput').value = 14;
+    document.getElementById('contextFontSizeDisplay').textContent = 14;
 
     // Reset background color picker
     const bgColorPreview = document.getElementById('bgColorPreview');

@@ -428,7 +428,11 @@ function createContextMenu() {
 
             <div class="format-group">
                 <label>Font Size:</label>
-                <input type="number" id="contextFontSizeInput" min="8" max="72" value="14" onchange="applyFontSizeFromContext()">
+                <div style="display: flex; gap: 5px; align-items: center; flex: 1;">
+                    <button onclick="decreaseContextFontSize()" style="width: 30px; padding: 4px 8px; font-weight: bold;">−</button>
+                    <span id="contextFontSizeDisplay" style="min-width: 30px; text-align: center; font-weight: bold;">14</span>
+                    <button onclick="increaseContextFontSize()" style="width: 30px; padding: 4px 8px; font-weight: bold;">+</button>
+                </div>
             </div>
 
             <div class="format-group">
@@ -509,7 +513,9 @@ function createTextFormatMenu() {
         </div>
         <div style="display: flex; gap: 5px; align-items: center; padding: 3px 0; border-top: 1px solid #ddd; padding-top: 5px;">
             <label style="font-size: 11px; margin: 0; min-width: 35px;">Size:</label>
-            <input type="number" id="textFontSize" min="8" max="72" value="14" onchange="applyTextFontSize()" style="width: 50px; padding: 3px;">
+            <button onclick="decreaseTextFontSize()" style="width: 28px; padding: 3px; font-weight: bold; font-size: 14px;">−</button>
+            <span id="textFontSizeDisplay" style="min-width: 30px; text-align: center; font-weight: bold; font-size: 13px;">14</span>
+            <button onclick="increaseTextFontSize()" style="width: 28px; padding: 3px; font-weight: bold; font-size: 14px;">+</button>
         </div>
         <div style="display: flex; gap: 5px; align-items: center; padding: 3px 0;">
             <label style="font-size: 11px; margin: 0; min-width: 35px;">Text:</label>
