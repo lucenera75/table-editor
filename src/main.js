@@ -192,6 +192,7 @@ export function createDynamicTable(rows, cols) {
 
 // Helper function to initialize pagination for dynamically loaded content
 function initPagination() {
+    initializeExistingTables()
     // Run pagination immediately
     handlePagination();
 
