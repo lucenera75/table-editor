@@ -17,7 +17,9 @@ export function startSnapshotTimer() {
     setSnapshotIntervalId(setInterval(() => {
         if (isUndoRedoInProgress) return;
 
-        const current = normalizeHtmlForComparison(document.body.innerHTML);
+        // Use the editable container if available, fall back to body
+        const container = document.getElementById('editable-contents-area') || document.body;
+        const current = normalizeHtmlForComparison(container.innerHTML);
 
         // Compare normalized HTML with last snapshot
         if (current !== lastSnapshot) {

@@ -3,7 +3,6 @@ import { anchorCell, currentCell, selectedCells, selectedColumn, selectedRow, se
 export function clearSelection() {
     console.log('=== clearSelection CALLED ===');
     console.log('Clearing', selectedCells.length, 'cells');
-    console.log('Stack trace:', new Error().stack);
 
     selectedCells.forEach(cell => {
         cell.classList.remove('cell-selected');
