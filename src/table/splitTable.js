@@ -40,19 +40,23 @@ export function splitTable() {
         Array.from(row.children).forEach(cell => {
             cell.onmousedown = function(e) { selectCell(this, e); };
             cell.oncontextmenu = function(e) { showContextMenu(e, this); };
+            cell.style.position = 'relative'; // Required for resize handles
         });
         newTbody.appendChild(row);
     });
     newTable.appendChild(newTbody);
 
-    const tableContainer = document.querySelector('.table-container');
-    const newContainer = document.createElement('div');
-    newContainer.className = 'table-container';
-    newContainer.style.marginTop = '20px';
+    // Copy table styles from original
+    newTable.style.borderCollapse = table.style.borderCollapse || 'collapse';
+    newTable.style.marginTop = '20px';
 
-    newContainer.appendChild(newTable);
-
-    tableContainer.parentNode.insertBefore(newContainer, tableContainer.nextSibling);
+    // Insert the new table after the original table
+    // Try to maintain the same parent structure
+    if (table.nextSibling) {
+        table.parentNode.insertBefore(newTable, table.nextSibling);
+    } else {
+        table.parentNode.appendChild(newTable);
+    }
 
     clearSelection();
 }
