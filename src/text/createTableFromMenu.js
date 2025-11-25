@@ -71,20 +71,56 @@ export function createTableFromMenu() {
     }
     table.appendChild(tbody);
 
-    // Insert table at cursor position or at the end of contenteditable area
-    if (savedSelection) {
-        savedSelection.deleteContents();
-        savedSelection.insertNode(table);
+    // Insert table as a direct child of the page at cursor position
+    let targetPage = null;
+    let insertAfterElement = null;
 
-        // Add line break after table for easier editing
-        const br = document.createElement('br');
-        table.parentNode.insertBefore(br, table.nextSibling);
+    if (savedSelection) {
+        // Find the element containing the cursor
+        const cursorContainer = savedSelection.commonAncestorContainer;
+        const cursorElement = cursorContainer.nodeType === 3
+            ? cursorContainer.parentElement
+            : cursorContainer;
+
+        // Find the closest page container
+        targetPage = cursorElement.closest('.portrait-content, .landscape-content');
+
+        if (targetPage) {
+            // Find which direct child of the page contains the cursor
+            let element = cursorElement;
+            while (element && element.parentElement !== targetPage) {
+                element = element.parentElement;
+            }
+            insertAfterElement = element;
+        }
+    }
+
+    // If no page found, try to find any page container
+    if (!targetPage) {
+        targetPage = document.querySelector('.portrait-content, .landscape-content');
+    }
+
+    // Insert the table
+    if (targetPage && insertAfterElement) {
+        // Insert after the element containing the cursor
+        if (insertAfterElement.nextSibling) {
+            targetPage.insertBefore(table, insertAfterElement.nextSibling);
+        } else {
+            targetPage.appendChild(table);
+        }
+    } else if (targetPage) {
+        // Append to the page
+        targetPage.appendChild(table);
     } else {
-        // Find a contenteditable element and append to it
-        const editableDiv = document.querySelector('[contenteditable="true"]');
-        if (editableDiv) {
-            editableDiv.appendChild(table);
-            editableDiv.appendChild(document.createElement('br'));
+        // Fallback: insert at cursor or append to contenteditable
+        if (savedSelection) {
+            savedSelection.deleteContents();
+            savedSelection.insertNode(table);
+        } else {
+            const editableDiv = document.querySelector('[contenteditable="true"]');
+            if (editableDiv) {
+                editableDiv.appendChild(table);
+            }
         }
     }
 
