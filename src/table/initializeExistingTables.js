@@ -3,6 +3,7 @@
 import { selectCell } from '../selection/selectCell.js';
 import { showContextMenu } from '../menus/showContextMenu.js';
 import { isDesignMode } from '../state/variables.js';
+import { initializeResizeHandles } from '../main.js';
 
 export function initializeExistingTables() {
     // Find all table cells (td and th) in the document
@@ -41,6 +42,8 @@ export function initializeExistingTables() {
             cell.appendChild(span);
         }
     });
+
+    initializeResizeHandles();
 
     console.log(`Initialized ${cells.length} table cells`);
 }
