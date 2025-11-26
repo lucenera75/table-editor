@@ -5,11 +5,12 @@ import { hideContextMenu } from '../menus/hideContextMenu.js';
 export function deleteTableFromContext() {
     if (!contextMenuTarget) return;
 
-    const tableContainer = contextMenuTarget.closest('.table-container');
+    const table = contextMenuTarget.closest('table');
+    if (!table) return;
 
     // Confirm deletion
     if (confirm('Are you sure you want to delete this table?')) {
-        tableContainer.remove();
+        table.remove();
         clearSelection();
         hideContextMenu();
     }

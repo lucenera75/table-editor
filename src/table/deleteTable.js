@@ -2,11 +2,12 @@ import { clearSelection } from '../selection/clearSelection.js';
 
 
 export function deleteTable(button) {
-    const tableContainer = button.closest('.table-container');
+    const table = button.closest('table');
+    if (!table) return;
 
     // Confirm deletion
     if (confirm('Are you sure you want to delete this table?')) {
-        tableContainer.remove();
+        table.remove();
         clearSelection();
     }
 }

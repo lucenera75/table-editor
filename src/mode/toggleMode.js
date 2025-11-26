@@ -2,7 +2,9 @@ import { isDesignMode, setIsDesignMode } from '../state/variables.js';
 
 export function toggleMode(button) {
     setIsDesignMode(!isDesignMode);
-    const table = button.closest('.table-container').querySelector('table');
+    const table = button.closest('table');
+    if (!table) return;
+
     const spans = table.querySelectorAll('th > span, td > span');
 
     if (isDesignMode) {
