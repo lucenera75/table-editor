@@ -5,7 +5,14 @@ import { addColumnDragHandle } from '../drag/addColumnDragHandle.js';
 
 export function initializeResizeHandles() {
     console.log('initializeResizeHandles called');
-    const tables = document.querySelectorAll('table');
+
+    // Only initialize resize handles for tables within editable-contents-area
+    const container = document.getElementById('editable-contents-area');
+    if (!container) {
+        return;
+    }
+
+    const tables = container.querySelectorAll('table');
     console.log('Found tables:', tables.length);
     tables.forEach(table => {
         const cells = table.querySelectorAll('th, td');

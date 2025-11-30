@@ -7,7 +7,16 @@ export function showTextFormatMenu() {
     const selection = window.getSelection();
     if (!selection.rangeCount) return;
 
+    // Only show text format menu for selections within editable-contents-area
+    const container = document.getElementById('editable-contents-area');
     const range = selection.getRangeAt(0);
+    const selectedElement = range.commonAncestorContainer;
+    const element = selectedElement.nodeType === 3 ? selectedElement.parentElement : selectedElement;
+
+    if (!container || !container.contains(element)) {
+        return;
+    }
+
     const rect = range.getBoundingClientRect();
 
     // Update format controls based on selected text

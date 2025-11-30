@@ -16,6 +16,13 @@ export function selectCell(cell, event = null) {
     console.log('isResizing:', isResizing);
     console.log('isMouseSelecting:', isMouseSelecting);
 
+    // Only allow selection within editable-contents-area
+    const container = document.getElementById('editable-contents-area');
+    if (!container || !container.contains(cell)) {
+        console.log('RETURN: cell not in editable-contents-area');
+        return;
+    }
+
     // Don't interfere if we're resizing
     if (isResizing) {
         console.log('RETURN: isResizing');

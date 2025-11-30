@@ -6,8 +6,14 @@ import { isDesignMode } from '../state/variables.js';
 import { initializeResizeHandles } from '../main.js';
 
 export function initializeExistingTables() {
-    // Find all table cells (td and th) in the document
-    const cells = document.querySelectorAll('table td, table th');
+    // Find the editable content area container
+    const container = document.getElementById('editable-contents-area');
+    if (!container) {
+        return;
+    }
+
+    // Find all table cells (td and th) only within the container
+    const cells = container.querySelectorAll('table td, table th');
 
     cells.forEach(cell => {
         // Only add handlers if they don't already exist

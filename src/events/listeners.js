@@ -87,6 +87,12 @@ export function setupEventListeners() {
 
     // Context menu handler
     document.addEventListener('contextmenu', function(e) {
+        // Only handle context menu within editable-contents-area
+        const container = document.getElementById('editable-contents-area');
+        if (!container || !container.contains(e.target)) {
+            return;
+        }
+
         if (e.target.closest('td, th')) {
             return;
         }
@@ -140,6 +146,12 @@ export function setupEventListeners() {
             return;
         }
 
+        // Only handle text selection within editable-contents-area
+        const editableContainer = document.getElementById('editable-contents-area');
+        if (!editableContainer || !editableContainer.contains(e.target)) {
+            return;
+        }
+
         setTimeout(() => {
             const selection = window.getSelection();
             const selectedText = selection.toString();
@@ -174,6 +186,12 @@ export function setupEventListeners() {
 
     // Double-click handler
     document.addEventListener('dblclick', function(e) {
+        // Only handle double-click within editable-contents-area
+        const container = document.getElementById('editable-contents-area');
+        if (!container || !container.contains(e.target)) {
+            return;
+        }
+
         const cell = e.target.closest('td, th');
         if (cell && (cell.tagName === 'TD' || cell.tagName === 'TH')) {
             if (e.target.closest('.resize-handle-col, .resize-handle-row, .resize-handle-corner, .row-drag-handle, .col-drag-handle')) {
@@ -186,6 +204,12 @@ export function setupEventListeners() {
 
     // Focus handler
     document.addEventListener('focusin', function(e) {
+        // Only handle focus within editable-contents-area
+        const container = document.getElementById('editable-contents-area');
+        if (!container || !container.contains(e.target)) {
+            return;
+        }
+
         const cell = e.target.closest('td, th');
         if (cell && (cell.tagName === 'TD' || cell.tagName === 'TH')) {
             if (!isEditMode && currentCell === cell && window.getSelection().toString()) {
@@ -197,6 +221,12 @@ export function setupEventListeners() {
 
     // Paste handler
     document.addEventListener('paste', function(e) {
+        // Only handle paste within editable-contents-area
+        const container = document.getElementById('editable-contents-area');
+        if (!container || !container.contains(e.target)) {
+            return;
+        }
+
         const cell = e.target.closest('td, th');
         if (!cell || (cell.tagName !== 'TD' && cell.tagName !== 'TH')) return;
 
@@ -269,6 +299,12 @@ export function setupEventListeners() {
 
     // Drag and drop handlers
     document.addEventListener('dragover', (e) => {
+        // Only handle drag within editable-contents-area
+        const container = document.getElementById('editable-contents-area');
+        if (!container || !container.contains(e.target)) {
+            return;
+        }
+
         e.preventDefault();
 
         const row = e.target.closest('tbody tr');
@@ -296,6 +332,12 @@ export function setupEventListeners() {
     });
 
     document.addEventListener('drop', (e) => {
+        // Only handle drop within editable-contents-area
+        const container = document.getElementById('editable-contents-area');
+        if (!container || !container.contains(e.target)) {
+            return;
+        }
+
         e.preventDefault();
 
         const targetRow = e.target.closest('tbody tr');

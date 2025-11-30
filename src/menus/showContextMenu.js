@@ -3,6 +3,12 @@ import { clearSelection } from '../selection/clearSelection.js';
 import { updateFormatControls } from '../formatting/updateFormatControls.js';
 
 export function showContextMenu(event, cell) {
+    // Only show context menu for cells within editable-contents-area
+    const container = document.getElementById('editable-contents-area');
+    if (!container || !container.contains(cell)) {
+        return;
+    }
+
     event.preventDefault();
     setContextMenuTarget(cell);
     // Only change selection if right-clicking on a cell that's not already selected
