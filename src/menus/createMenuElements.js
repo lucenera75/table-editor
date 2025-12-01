@@ -367,6 +367,37 @@ function injectMenuStyles() {
         .col-drag-over {
             border-left: 3px solid #007bff !important;
         }
+
+        /* Enhanced cursor visibility */
+        [contenteditable="true"] {
+            caret-color: #2196F3;
+        }
+
+        [contenteditable="true"]:focus {
+            caret-color: #1565C0;
+        }
+
+        /* Blink animation for better visibility */
+        @keyframes blink-caret {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Apply blinking to focused editable areas */
+        [contenteditable="true"]:focus::after {
+            animation: blink-caret 1s step-end infinite;
+        }
+
+        /* Make text selection more visible */
+        [contenteditable="true"]::selection {
+            background-color: #64B5F6;
+            color: white;
+        }
+
+        [contenteditable="true"]::-moz-selection {
+            background-color: #64B5F6;
+            color: white;
+        }
     `;
 
     document.head.appendChild(style);

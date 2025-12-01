@@ -258,6 +258,35 @@ export function setupEventListeners() {
             return;
         }
 
+        // Handle backspace/delete at page start - jump to previous page end
+        if (e.key === 'Backspace' || e.key === 'Delete') {
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                const container = range.commonAncestorContainer;
+                const element = container.nodeType === 3 ? container.parentElement : container;
+
+                // Check if we're in a page container
+                const currentPage = element?.closest('.portrait-content, .landscape-content');
+                if (currentPage) {
+                    // Check if cursor is at the start of the page
+                    const isAtStart = range.startOffset === 0 &&
+                                     range.collapsed &&
+                                     isAtPageStart(element, currentPage);
+
+                    if (isAtStart) {
+                        // Find previous page with same class
+                        const prevPage = findPreviousPage(currentPage);
+                        if (prevPage) {
+                            e.preventDefault();
+                            moveCursorToPageEnd(prevPage);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
         // Handle formatting shortcuts
         if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey) {
             switch(e.key.toLowerCase()) {
@@ -398,4 +427,123 @@ export function setupEventListeners() {
             if (textDropdown) textDropdown.classList.remove('show');
         }
     });
+
+    // Auto-scroll to selection when typing
+    document.addEventListener('input', function(e) {
+        const container = document.getElementById('editable-contents-area');
+        if (!container || !container.contains(e.target)) {
+            return;
+        }
+
+        // Scroll to make cursor/selection visible
+        setTimeout(() => scrollToSelection(), 10);
+    });
+}
+
+// Helper functions for page navigation
+
+function isAtPageStart(element, page) {
+    // Check if element is the first content in the page
+    const staticChildren = Array.from(page.children).filter(child => {
+        const position = window.getComputedStyle(child).position;
+        return position === 'static' || position === 'relative';
+    });
+
+    if (staticChildren.length === 0) return false;
+
+    // Find the first text node or element
+    const firstChild = staticChildren[0];
+    return isElementOrAncestor(element, firstChild);
+}
+
+function isElementOrAncestor(element, ancestor) {
+    let current = element;
+    while (current && current !== document.body) {
+        if (current === ancestor) return true;
+        current = current.parentElement;
+    }
+    return false;
+}
+
+function findPreviousPage(currentPage) {
+    const pageClasses = currentPage.classList.contains('portrait-content') ? 'portrait-content' : 'landscape-content';
+    let prev = currentPage.previousElementSibling;
+
+    while (prev) {
+        if (prev.classList.contains(pageClasses)) {
+            return prev;
+        }
+        prev = prev.previousElementSibling;
+    }
+    return null;
+}
+
+function moveCursorToPageEnd(page) {
+    // Get the last static child in the page
+    const staticChildren = Array.from(page.children).filter(child => {
+        const position = window.getComputedStyle(child).position;
+        return position === 'static' || position === 'relative';
+    });
+
+    if (staticChildren.length === 0) return;
+
+    const lastChild = staticChildren[staticChildren.length - 1];
+
+    // Find the last text node in the last child
+    const lastTextNode = getLastTextNode(lastChild);
+    if (lastTextNode) {
+        const range = document.createRange();
+        const selection = window.getSelection();
+
+        range.setStart(lastTextNode, lastTextNode.length);
+        range.collapse(true);
+
+        selection.removeAllRanges();
+        selection.addRange(range);
+
+        // Scroll to the cursor
+        scrollToSelection();
+    }
+}
+
+function getLastTextNode(element) {
+    // Recursively find the last text node
+    if (element.nodeType === 3) { // Text node
+        return element;
+    }
+
+    const children = element.childNodes;
+    for (let i = children.length - 1; i >= 0; i--) {
+        const textNode = getLastTextNode(children[i]);
+        if (textNode) return textNode;
+    }
+
+    return null;
+}
+
+function scrollToSelection() {
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+
+    const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+
+    // Check if selection is visible in viewport
+    const isVisible = rect.top >= 0 &&
+                     rect.left >= 0 &&
+                     rect.bottom <= window.innerHeight &&
+                     rect.right <= window.innerWidth;
+
+    if (!isVisible) {
+        // Create a temporary element at cursor position to scroll to
+        const tempElement = document.createElement('span');
+        tempElement.style.position = 'absolute';
+        tempElement.style.left = rect.left + 'px';
+        tempElement.style.top = rect.top + window.scrollY + 'px';
+        document.body.appendChild(tempElement);
+
+        tempElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        setTimeout(() => tempElement.remove(), 100);
+    }
 }
