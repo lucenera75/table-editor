@@ -12,28 +12,41 @@ export function splitTable() {
     const selectedRow = selectedCells[0].parentNode;
     const table = selectedCells[0].closest('table');
     if (!table) return;
-    const allRows = Array.from(table.querySelectorAll('tr'));
-    const selectedRowIndex = allRows.indexOf(selectedRow);
 
-    if (selectedRowIndex <= 0) {
+    const thead = table.querySelector('thead');
+    const tbody = table.querySelector('tbody');
+
+    // Get all tbody rows only (exclude header rows)
+    const tbodyRows = tbody ? Array.from(tbody.querySelectorAll('tr')) : Array.from(table.querySelectorAll('tr'));
+    const selectedRowIndex = tbodyRows.indexOf(selectedRow);
+
+    if (selectedRowIndex < 0) {
         alert('Cannot split at header row');
         return;
     }
 
+    if (selectedRowIndex === 0 && tbodyRows.length === 1) {
+        alert('Cannot split - only one row remaining');
+        return;
+    }
+
     const headerRow = table.querySelector('thead tr');
-    const rowsToMove = allRows.slice(selectedRowIndex);
+    const rowsToMove = tbodyRows.slice(selectedRowIndex);
 
     const newTable = document.createElement('table');
     newTable.style.marginTop = '20px';
 
-    const newThead = document.createElement('thead');
-    const newHeaderRow = headerRow.cloneNode(true);
-    Array.from(newHeaderRow.children).forEach(cell => {
-        cell.onmousedown = function(e) { selectCell(this, e); };
-        cell.oncontextmenu = function(e) { showContextMenu(e, this); };
-    });
-    newThead.appendChild(newHeaderRow);
-    newTable.appendChild(newThead);
+    // Only create thead if original table has one
+    if (headerRow) {
+        const newThead = document.createElement('thead');
+        const newHeaderRow = headerRow.cloneNode(true);
+        Array.from(newHeaderRow.children).forEach(cell => {
+            cell.onmousedown = function(e) { selectCell(this, e); };
+            cell.oncontextmenu = function(e) { showContextMenu(e, this); };
+        });
+        newThead.appendChild(newHeaderRow);
+        newTable.appendChild(newThead);
+    }
 
     const newTbody = document.createElement('tbody');
     rowsToMove.forEach(row => {
