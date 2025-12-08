@@ -42,6 +42,11 @@ export function splitTable() {
     const newTable = document.createElement('table');
     newTable.style.marginTop = '20px';
 
+    // Copy classes from the original table
+    if (table.className) {
+        newTable.className = table.className;
+    }
+
     // Mark the new table with the same split group ID
     newTable.setAttribute('data-split-group-id', splitGroupId);
 
@@ -68,8 +73,11 @@ export function splitTable() {
     });
     newTable.appendChild(newTbody);
 
-    // Copy table styles from original
+    // Copy additional inline styles from original table
     newTable.style.borderCollapse = table.style.borderCollapse || 'collapse';
+    if (table.style.width) newTable.style.width = table.style.width;
+    if (table.style.maxWidth) newTable.style.maxWidth = table.style.maxWidth;
+    if (table.style.border) newTable.style.border = table.style.border;
     newTable.style.marginTop = '20px';
 
     // Insert the new table after the original table

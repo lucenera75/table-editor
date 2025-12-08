@@ -107,7 +107,21 @@ export function addColumnLeft() {
         }
 
         const newCell = document.createElement(rowIdx === 0 ? 'th' : 'td');
-        newCell.style.border = '1px solid #ddd';
+
+        // Copy classes and styles from the contextMenuTarget (the clicked cell)
+        if (contextMenuTarget.className) {
+            newCell.className = contextMenuTarget.className;
+        }
+        // Copy relevant inline styles from the reference cell
+        if (contextMenuTarget.style.border) newCell.style.border = contextMenuTarget.style.border;
+        if (contextMenuTarget.style.backgroundColor) newCell.style.backgroundColor = contextMenuTarget.style.backgroundColor;
+        if (contextMenuTarget.style.width) newCell.style.width = contextMenuTarget.style.width;
+        if (contextMenuTarget.style.height) newCell.style.height = contextMenuTarget.style.height;
+        if (contextMenuTarget.style.textAlign) newCell.style.textAlign = contextMenuTarget.style.textAlign;
+        if (contextMenuTarget.style.verticalAlign) newCell.style.verticalAlign = contextMenuTarget.style.verticalAlign;
+        if (contextMenuTarget.style.padding) newCell.style.padding = contextMenuTarget.style.padding;
+        if (!contextMenuTarget.style.border) newCell.style.border = '1px solid #ddd';
+
         const span = document.createElement('span');
         span.contentEditable = isDesignMode ? 'false' : 'true';
         const nextCounter = newCellCounter + 1;

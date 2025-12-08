@@ -9,57 +9,77 @@ export function joinTables() {
         return;
     }
 
-    const table = selectedCells[0].closest('table');
-    if (!table) return;
+    const selectedTable = selectedCells[0].closest('table');
+    if (!selectedTable) return;
 
-    const splitGroupId = table.getAttribute('data-split-group-id');
+    const splitGroupId = selectedTable.getAttribute('data-split-group-id');
     if (!splitGroupId) {
         alert('This table was not created from a split operation');
         return;
     }
 
-    // Find the next table with the same split group ID
-    let nextTable = table.nextElementSibling;
+    // Find ALL tables in the document with the same split group ID
+    const allTables = Array.from(document.querySelectorAll(`table[data-split-group-id="${splitGroupId}"]`));
 
-    // Skip non-table elements
-    while (nextTable && nextTable.tagName !== 'TABLE') {
-        nextTable = nextTable.nextElementSibling;
-    }
-
-    // Check if the next table has the same split group ID
-    if (!nextTable || nextTable.getAttribute('data-split-group-id') !== splitGroupId) {
-        alert('No adjacent table found with the same split group ID. Tables must be directly adjacent to be joined.');
+    if (allTables.length <= 1) {
+        alert('No other tables found with the same split group ID to join');
         return;
     }
 
-    // Get the tbody from both tables
-    const tbody1 = table.querySelector('tbody');
-    const tbody2 = nextTable.querySelector('tbody');
-
-    if (!tbody1 || !tbody2) {
-        alert('Cannot join tables: missing tbody element');
-        return;
-    }
-
-    // Move all rows from the second table's tbody to the first table's tbody
-    const rowsToMove = Array.from(tbody2.querySelectorAll('tr'));
-    rowsToMove.forEach(row => {
-        // Ensure event handlers are attached to cells
-        Array.from(row.children).forEach(cell => {
-            cell.onmousedown = function(e) { selectCell(this, e); };
-            cell.oncontextmenu = function(e) { showContextMenu(e, this); };
-            cell.style.position = 'relative'; // Required for resize handles
-        });
-        tbody1.appendChild(row);
+    // Sort tables by their position in the document (DOM order)
+    allTables.sort((a, b) => {
+        const position = a.compareDocumentPosition(b);
+        if (position & Node.DOCUMENT_POSITION_FOLLOWING) {
+            return -1; // a comes before b
+        } else if (position & Node.DOCUMENT_POSITION_PRECEDING) {
+            return 1; // a comes after b
+        }
+        return 0;
     });
 
-    // Remove the second table
-    nextTable.remove();
+    // The first table in document order is the "original" table
+    const originalTable = allTables[0];
+    const originalTbody = originalTable.querySelector('tbody');
+
+    if (!originalTbody) {
+        alert('Cannot join tables: original table missing tbody element');
+        return;
+    }
+
+    // Join all other tables into the first one
+    let totalRowsMerged = 0;
+    for (let i = 1; i < allTables.length; i++) {
+        const tableToMerge = allTables[i];
+        const tbody = tableToMerge.querySelector('tbody');
+
+        if (!tbody) {
+            console.warn('Skipping table without tbody:', tableToMerge);
+            continue;
+        }
+
+        // Move all rows from this table to the original table
+        const rowsToMove = Array.from(tbody.querySelectorAll('tr'));
+        rowsToMove.forEach(row => {
+            // Ensure event handlers are attached to cells
+            Array.from(row.children).forEach(cell => {
+                cell.onmousedown = function(e) { selectCell(this, e); };
+                cell.oncontextmenu = function(e) { showContextMenu(e, this); };
+                cell.style.position = 'relative'; // Required for resize handles
+            });
+            originalTbody.appendChild(row);
+            totalRowsMerged++;
+        });
+
+        // Remove the merged table
+        tableToMerge.remove();
+    }
 
     // Keep the split-group-id on the joined table so it can be split again
-    // (The ID is preserved on table)
+    // (The ID is already on originalTable)
 
     clearSelection();
 
-    console.log(`Joined tables with split group ID: ${splitGroupId}`);
+    console.log(`Joined ${allTables.length} tables with split group ID: ${splitGroupId}`);
+    console.log(`Total rows merged: ${totalRowsMerged}`);
+    alert(`Successfully joined ${allTables.length} tables (${totalRowsMerged} rows merged)`);
 }

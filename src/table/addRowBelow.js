@@ -36,9 +36,38 @@ export function addRowBelow() {
     const cellsNeeded = getCellsNeededForRow(table, nextRow);
     const newRow = document.createElement('tr');
 
+    // Copy classes and styles from the current row to the new row
+    if (currentRow.className) {
+        newRow.className = currentRow.className;
+    }
+    if (currentRow.style.cssText) {
+        newRow.style.cssText = currentRow.style.cssText;
+    }
+
+    // Get cells from current row for reference (excluding cells that span from above)
+    const currentRowCells = Array.from(currentRow.children);
+
     for (let i = 0; i < cellsNeeded; i++) {
         const cell = document.createElement('td');
-        cell.style.border = '1px solid #ddd';
+
+        // Copy styles and classes from corresponding cell in current row if available
+        const referenceCell = currentRowCells[Math.min(i, currentRowCells.length - 1)];
+        if (referenceCell) {
+            if (referenceCell.className) {
+                cell.className = referenceCell.className;
+            }
+            // Copy relevant inline styles
+            if (referenceCell.style.border) cell.style.border = referenceCell.style.border;
+            if (referenceCell.style.backgroundColor) cell.style.backgroundColor = referenceCell.style.backgroundColor;
+            if (referenceCell.style.width) cell.style.width = referenceCell.style.width;
+            if (referenceCell.style.height) cell.style.height = referenceCell.style.height;
+            if (referenceCell.style.textAlign) cell.style.textAlign = referenceCell.style.textAlign;
+            if (referenceCell.style.verticalAlign) cell.style.verticalAlign = referenceCell.style.verticalAlign;
+            if (referenceCell.style.padding) cell.style.padding = referenceCell.style.padding;
+        } else {
+            cell.style.border = '1px solid #ddd';
+        }
+
         const span = document.createElement('span');
         span.contentEditable = isDesignMode ? 'false' : 'true';
         const nextCounter = newCellCounter + 1;
