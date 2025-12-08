@@ -46,6 +46,7 @@ import { getTableColumnCount } from './table/getTableColumnCount.js';
 import { getCellsNeededForRow } from './table/getCellsNeededForRow.js';
 import { getColumnPosition } from './table/getColumnPosition.js';
 import { splitTable } from './table/splitTable.js';
+import { joinTables } from './table/joinTables.js';
 import { deleteTable } from './table/deleteTable.js';
 import { deleteTableFromContext } from './table/deleteTableFromContext.js';
 import { toggleTableHeaders } from './table/toggleTableHeaders.js';
@@ -124,7 +125,7 @@ export {
     addColumnLeft, addColumnRight, deleteSelectedRow, deleteSelectedColumn,
     moveRowUp, moveRowDown, sortColumnAZ, sortColumnZA, sortColumn,
     getTableColumnCount, getCellsNeededForRow, getColumnPosition,
-    splitTable, deleteTable, deleteTableFromContext, toggleTableHeaders,
+    splitTable, joinTables, deleteTable, deleteTableFromContext, toggleTableHeaders,
     initializeExistingTables,
     deleteCell, mergeSelectedCells, areSelectedCellsAdjacent, splitSelectedCell,
     toggleCellInvisible, toggleVerticalText,
@@ -255,6 +256,7 @@ if (typeof window !== 'undefined') {
     window.pasteAsPlainText = pasteAsPlainText;
     window.toggleTableHeaders = toggleTableHeaders;
     window.splitTable = splitTable;
+    window.joinTables = joinTables;
     window.deleteTableFromContext = deleteTableFromContext;
     window.applyAlignmentFromContext = applyAlignmentFromContext;
     window.applyVerticalAlignmentFromContext = applyVerticalAlignmentFromContext;

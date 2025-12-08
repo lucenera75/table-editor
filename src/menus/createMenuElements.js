@@ -435,6 +435,7 @@ function createContextMenu() {
         <button onclick="toggleTableHeaders()">Toggle Headers</button>
         <div class="separator"></div>
         <button onclick="splitTable()">Split Table</button>
+        <button onclick="joinTables()">Join Tables</button>
         <button onclick="deleteTableFromContext()">Delete Table</button>
         <div class="separator"></div>
 

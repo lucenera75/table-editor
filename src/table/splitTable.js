@@ -30,11 +30,20 @@ export function splitTable() {
         return;
     }
 
+    // Generate a unique split group ID (or use existing one if table was already split)
+    const splitGroupId = table.getAttribute('data-split-group-id') || `split-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+
+    // Mark the original table with the split group ID
+    table.setAttribute('data-split-group-id', splitGroupId);
+
     const headerRow = table.querySelector('thead tr');
     const rowsToMove = tbodyRows.slice(selectedRowIndex);
 
     const newTable = document.createElement('table');
     newTable.style.marginTop = '20px';
+
+    // Mark the new table with the same split group ID
+    newTable.setAttribute('data-split-group-id', splitGroupId);
 
     // Only create thead if original table has one
     if (headerRow) {
