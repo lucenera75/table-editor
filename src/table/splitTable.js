@@ -2,6 +2,9 @@ import { selectedCells, selectedRow } from '../state/variables.js';
 import { selectCell } from '../selection/selectCell.js';
 import { clearSelection } from '../selection/clearSelection.js';
 import { showContextMenu } from '../menus/showContextMenu.js';
+import { addResizeHandles } from '../resize/addResizeHandles.js';
+import { addRowDragHandle } from '../drag/addRowDragHandle.js';
+import { addColumnDragHandle } from '../drag/addColumnDragHandle.js';
 
 export function splitTable() {
     if (selectedCells.length === 0) {
@@ -58,6 +61,9 @@ export function splitTable() {
         Array.from(newHeaderRow.children).forEach(cell => {
             cell.onmousedown = function(e) { selectCell(this, e); };
             cell.oncontextmenu = function(e) { showContextMenu(e, this); };
+            cell.style.position = 'relative';
+            addResizeHandles(cell);
+            addColumnDragHandle(cell);
         });
         newThead.appendChild(newHeaderRow);
         newTable.appendChild(newThead);
@@ -69,7 +75,9 @@ export function splitTable() {
             cell.onmousedown = function(e) { selectCell(this, e); };
             cell.oncontextmenu = function(e) { showContextMenu(e, this); };
             cell.style.position = 'relative'; // Required for resize handles
+            addResizeHandles(cell);
         });
+        addRowDragHandle(row);
         newTbody.appendChild(row);
     });
     newTable.appendChild(newTbody);
@@ -89,6 +97,14 @@ export function splitTable() {
     } else {
         table.parentNode.appendChild(newTable);
     }
+
+    // Trigger pagination to handle the new table
+    // Use setTimeout to ensure the DOM has updated
+    setTimeout(() => {
+        if (window.handlePagination) {
+            window.handlePagination();
+        }
+    }, 100);
 
     clearSelection();
 }

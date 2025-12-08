@@ -79,6 +79,14 @@ export function joinTables() {
 
     clearSelection();
 
+    // Trigger pagination to handle the joined table
+    // Use setTimeout to ensure the DOM has updated
+    setTimeout(() => {
+        if (window.handlePagination) {
+            window.handlePagination();
+        }
+    }, 100);
+
     console.log(`Joined ${allTables.length} tables with split group ID: ${splitGroupId}`);
     console.log(`Total rows merged: ${totalRowsMerged}`);
     alert(`Successfully joined ${allTables.length} tables (${totalRowsMerged} rows merged)`);
