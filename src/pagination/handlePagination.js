@@ -31,41 +31,11 @@ function repaginate() {
 
     console.log(`Found ${pages.length} pages`);
 
-    // Process each page - use a while loop to handle dynamically created pages
-    let currentIndex = 0;
-    const processedPages = new Set();
-
-    while (currentIndex < pages.length) {
-        const page = pages[currentIndex];
-
-        // Skip if we've already processed this page
-        if (processedPages.has(page)) {
-            currentIndex++;
-            continue;
-        }
-
-        console.log(`\nProcessing page ${currentIndex}...`);
+    // Process each page
+    pages.forEach((page, index) => {
+        console.log(`\nProcessing page ${index}...`);
         processPage(page);
-        processedPages.add(page);
-
-        // Re-query pages in case new ones were created
-        const updatedPages = [];
-        pageClasses.forEach(pageClass => {
-            const containers = document.querySelectorAll(`.${pageClass}`);
-            updatedPages.push(...containers);
-        });
-
-        // If new pages were added, add them to our processing queue
-        if (updatedPages.length > pages.length) {
-            pages.length = 0;
-            pages.push(...updatedPages);
-        }
-
-        currentIndex++;
-    }
-
-    // Final cleanup: remove any empty pages
-    cleanupEmptyPages();
+    });
 }
 
 function tryPullFromNextPage(currentPage, currentPageRect, currentPageHeight, currentStaticChildren, effectiveBottom) {
@@ -208,20 +178,10 @@ function processPage(page) {
             if (childHeight > effectivePageHeight - 50) { // 50px safety margin
                 console.log(`  → Element ${i} is too tall for a single page (${childHeight}px > ${effectivePageHeight}px)`);
 
-                // If this is the ONLY element on the page, keep it here to avoid infinite loop
-                // Otherwise, move it to next page
-                if (i === 0 && updatedChildren.length === 1) {
-                    console.log(`  ⚠ Oversized element is the only content, keeping it to avoid empty pages`);
-                    return;
-                } else if (i === 0) {
-                    // Move to next page along with any following elements
-                    cutIndex = i;
-                    break;
-                } else {
-                    // There are elements before this one, cut from here
-                    cutIndex = i;
-                    break;
-                }
+                // Skip this element but continue checking from next element
+                // Move this oversized element to next page
+                cutIndex = i;
+                break;
             } else {
                 cutIndex = i;
                 console.log(`  → Element ${i} not fully visible, cutting from here`);
@@ -239,26 +199,6 @@ function processPage(page) {
     // Cut this element and all following elements
     const elementsToCut = updatedChildren.slice(cutIndex);
     console.log(`  Cutting ${elementsToCut.length} elements`);
-
-    // Safety check: don't create new page if all elements are oversized
-    // This prevents infinite loops of empty page creation
-    if (elementsToCut.length === updatedChildren.length) {
-        const allOversized = elementsToCut.every(el => {
-            const elHeight = el.getBoundingClientRect().height;
-            return elHeight > effectivePageHeight - 50;
-        });
-
-        if (allOversized) {
-            console.log(`  ⚠ All elements are oversized, keeping them on this page to avoid empty page creation`);
-            return;
-        }
-    }
-
-    // Safety check: don't cut if we have no elements to cut
-    if (elementsToCut.length === 0) {
-        console.log(`  ⚠ No elements to cut, skipping`);
-        return;
-    }
 
     // Check if immediate next sibling has same className as current page
     const nextPage = page.nextElementSibling;
@@ -332,26 +272,4 @@ function createNewPage(templatePage) {
     });
 
     return newPage;
-}
-
-function cleanupEmptyPages() {
-    const pageClasses = ["portrait-content", "landscape-content"];
-
-    pageClasses.forEach(pageClass => {
-        const pages = document.querySelectorAll(`.${pageClass}`);
-
-        pages.forEach((page, index) => {
-            // Get all static children
-            const staticChildren = Array.from(page.children).filter(child => {
-                const position = window.getComputedStyle(child).position;
-                return position === 'static' || position === 'relative';
-            });
-
-            // If page has no static content, remove it (unless it's the first page)
-            if (staticChildren.length === 0 && index > 0) {
-                console.log(`Cleanup: Removing empty page ${index}`);
-                page.remove();
-            }
-        });
-    });
 }
