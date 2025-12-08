@@ -56,6 +56,9 @@ export let currentTextMenuBgColor = '';
 // Border color
 export let currentBorderColor = '#dddddd';
 
+// Copied format for copy/paste format feature
+export let copiedFormat = null;
+
 // Setters for variables that need to be modified from other modules
 export function setSelectedCells(value) { selectedCells = value; }
 export function setSelectedRow(value) { selectedRow = value; }
@@ -92,3 +95,4 @@ export function setCurrentTextColor(value) { currentTextColor = value; }
 export function setCurrentTextMenuTextColor(value) { currentTextMenuTextColor = value; }
 export function setCurrentTextMenuBgColor(value) { currentTextMenuBgColor = value; }
 export function setCurrentBorderColor(value) { currentBorderColor = value; }
+export function setCopiedFormat(value) { copiedFormat = value; }

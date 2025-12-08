@@ -23,6 +23,18 @@ export function showContextMenu(event, cell) {
     updateFormatControls(cell);
 
     const contextMenu = document.getElementById('contextMenu');
+
+    // Check if the table has a split-group-id to show/hide Join Tables button
+    const table = cell.closest('table');
+    const joinTablesBtn = document.getElementById('joinTablesBtn');
+    if (joinTablesBtn) {
+        if (table && table.getAttribute('data-split-group-id')) {
+            joinTablesBtn.style.display = 'block';
+        } else {
+            joinTablesBtn.style.display = 'none';
+        }
+    }
+
     contextMenu.style.display = 'block';
     contextMenu.style.left = event.pageX + 'px';
     contextMenu.style.top = event.pageY + 'px';
