@@ -42,6 +42,7 @@ export function splitTable() {
     const newTable = document.createElement('table');
     newTable.style.marginTop = '20px';
 
+
     // Copy classes from the original table
     if (table.className) {
         newTable.className = table.className;
@@ -79,6 +80,7 @@ export function splitTable() {
     if (table.style.maxWidth) newTable.style.maxWidth = table.style.maxWidth;
     if (table.style.border) newTable.style.border = table.style.border;
     newTable.style.marginTop = '20px';
+    newTable.className = table.className;
 
     // Insert the new table after the original table
     // Try to maintain the same parent structure
