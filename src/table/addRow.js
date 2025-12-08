@@ -1,4 +1,4 @@
-import { selectedCells, isDesignMode, newCellCounter } from '../state/variables.js';
+import { selectedCells, isDesignMode, newCellCounter, setNewCellCounter } from '../state/variables.js';
 import { selectCell } from '../selection/selectCell.js';
 import { showContextMenu } from '../menus/showContextMenu.js';
 import { getCellsNeededForRow } from './getCellsNeededForRow.js';
@@ -16,7 +16,6 @@ export function addRow() {
 
     for (let i = 0; i < cellsNeeded; i++) {
         const cell = document.createElement('td');
-        cell.style.border = '1px solid #ddd';
         const span = document.createElement('span');
         span.contentEditable = isDesignMode ? 'false' : 'true';
         span.textContent = `New Cell ${(setNewCellCounter(newCellCounter + 1), newCellCounter)}`;

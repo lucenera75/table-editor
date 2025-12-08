@@ -521,6 +521,51 @@ function createContextMenu() {
                     </div>
                 </div>
             </div>
+
+            <div class="format-group">
+                <label>Border Width:</label>
+                <select id="borderWidthSelect" onchange="applyBorderStyleFromContext()">
+                    <option value="0">None</option>
+                    <option value="1" selected>1px</option>
+                    <option value="2">2px</option>
+                    <option value="3">3px</option>
+                    <option value="4">4px</option>
+                    <option value="5">5px</option>
+                </select>
+            </div>
+
+            <div class="format-group">
+                <label>Border Style:</label>
+                <select id="borderStyleSelect" onchange="applyBorderStyleFromContext()">
+                    <option value="solid" selected>Solid</option>
+                    <option value="dashed">Dashed</option>
+                    <option value="dotted">Dotted</option>
+                    <option value="double">Double</option>
+                </select>
+            </div>
+
+            <div class="format-group">
+                <label>Border Color:</label>
+                <div class="color-picker-container">
+                    <div class="color-picker-selected" id="borderColorPicker" onclick="toggleBorderColorDropdown()">
+                        <div class="color-preview" id="borderColorPreview" style="background-color: #dddddd;"></div>
+                        <span id="borderColorLabel">Gray</span>
+                    </div>
+                    <div class="color-picker-dropdown" id="borderColorDropdown">
+                        ${createColorOptions('selectBorderColor', [
+                            { color: '#000000', label: 'Black' },
+                            { color: '#dddddd', label: 'Gray' },
+                            { color: '#FFFFFF', label: 'White', border: true },
+                            { color: '#4ac6e9', label: 'Light Blue' },
+                            { color: '#008aba', label: 'Blue' },
+                            { color: '#90639d', label: 'Light Purple' },
+                            { color: '#722a81', label: 'Purple' },
+                            { color: '#f26649', label: 'Orange' },
+                            { color: 'yellow', label: 'Yellow' }
+                        ])}
+                    </div>
+                </div>
+            </div>
         </div>
 
         <button onclick="resetFormatFromContext()">Reset Format</button>

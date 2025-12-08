@@ -1,4 +1,4 @@
-import { currentBgColor, currentTextColor, setCurrentBgColor, setCurrentTextColor } from '../state/variables.js';
+import { currentBgColor, currentTextColor, setCurrentBgColor, setCurrentTextColor, setCurrentBorderColor } from '../state/variables.js';
 import { rgbToHex } from './rgbToHex.js';
 import { updateFormatButtons } from './updateFormatButtons.js';
 
@@ -13,6 +13,39 @@ export function updateFormatControls(cell) {
 
     const fontSizeDisplay = document.getElementById('contextFontSizeDisplay');
     if (fontSizeDisplay) fontSizeDisplay.textContent = parseInt(computedStyle.fontSize) || 14;
+
+    // Update border controls
+    const borderWidth = parseInt(computedStyle.borderWidth) || 1;
+    const borderStyle = computedStyle.borderStyle || 'solid';
+    const borderColor = computedStyle.borderColor;
+    const borderColorHex = rgbToHex(borderColor);
+
+    const borderWidthSelect = document.getElementById('borderWidthSelect');
+    if (borderWidthSelect) borderWidthSelect.value = borderWidth;
+
+    const borderStyleSelect = document.getElementById('borderStyleSelect');
+    if (borderStyleSelect) borderStyleSelect.value = borderStyle;
+
+    // Define color map for border
+    const borderColorMap = {
+        '#000000': 'Black',
+        '#dddddd': 'Gray',
+        '#ffffff': 'White',
+        '#4ac6e9': 'Light Blue',
+        '#008aba': 'Blue',
+        '#90639d': 'Light Purple',
+        '#722a81': 'Purple',
+        '#f26649': 'Orange',
+        'yellow': 'Yellow',
+        '#ffff00': 'Yellow'
+    };
+
+    const borderLabel = borderColorMap[borderColorHex.toLowerCase()] || borderColorMap[borderColor] || 'Gray';
+    const borderColorValue = borderColorMap[borderColorHex.toLowerCase()] || borderColorMap[borderColor] ? (borderColor === 'yellow' ? 'yellow' : borderColorHex) : '#dddddd';
+
+    setCurrentBorderColor(borderColorValue);
+    document.getElementById('borderColorPreview').style.backgroundColor = borderColorValue;
+    document.getElementById('borderColorLabel').textContent = borderLabel;
 
     // Update background color picker
     const bgColor = computedStyle.backgroundColor;

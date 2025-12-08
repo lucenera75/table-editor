@@ -87,6 +87,9 @@ import { selectTextMenuTextColor } from './formatting/selectTextMenuTextColor.js
 import { selectTextMenuBgColor } from './formatting/selectTextMenuBgColor.js';
 import { toggleTextMenuTextColorDropdown } from './formatting/toggleTextMenuTextColorDropdown.js';
 import { toggleTextMenuBgColorDropdown } from './formatting/toggleTextMenuBgColorDropdown.js';
+import { applyBorderStyleFromContext } from './formatting/applyBorderStyleFromContext.js';
+import { toggleBorderColorDropdown } from './formatting/toggleBorderColorDropdown.js';
+import { selectBorderColor } from './formatting/selectBorderColor.js';
 
 import { showTextFormatMenu } from './text/showTextFormatMenu.js';
 import { hideTextFormatMenu } from './text/hideTextFormatMenu.js';
@@ -138,6 +141,7 @@ export {
     increaseTextFontSize, decreaseTextFontSize,
     selectTextMenuTextColor, selectTextMenuBgColor,
     toggleTextMenuTextColorDropdown, toggleTextMenuBgColorDropdown,
+    applyBorderStyleFromContext, toggleBorderColorDropdown, selectBorderColor,
     showTextFormatMenu, hideTextFormatMenu, selectParentTag, clearTextFormat,
     createTableFromMenu, pasteAsPlainText,
     addResizeHandles, startResize, handleResize, stopResize,
@@ -280,6 +284,9 @@ if (typeof window !== 'undefined') {
     window.selectTextMenuBgColor = selectTextMenuBgColor;
     window.toggleTextMenuTextColorDropdown = toggleTextMenuTextColorDropdown;
     window.toggleTextMenuBgColorDropdown = toggleTextMenuBgColorDropdown;
+    window.applyBorderStyleFromContext = applyBorderStyleFromContext;
+    window.toggleBorderColorDropdown = toggleBorderColorDropdown;
+    window.selectBorderColor = selectBorderColor;
     window.selectParentTag = selectParentTag;
     window.clearTextFormat = clearTextFormat;
     window.createTableFromMenu = createTableFromMenu;

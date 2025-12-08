@@ -53,6 +53,9 @@ export let currentTextColor = '#000000';
 export let currentTextMenuTextColor = '#000000';
 export let currentTextMenuBgColor = '';
 
+// Border color
+export let currentBorderColor = '#dddddd';
+
 // Setters for variables that need to be modified from other modules
 export function setSelectedCells(value) { selectedCells = value; }
 export function setSelectedRow(value) { selectedRow = value; }
@@ -88,3 +91,4 @@ export function setCurrentBgColor(value) { currentBgColor = value; }
 export function setCurrentTextColor(value) { currentTextColor = value; }
 export function setCurrentTextMenuTextColor(value) { currentTextMenuTextColor = value; }
 export function setCurrentTextMenuBgColor(value) { currentTextMenuBgColor = value; }
+export function setCurrentBorderColor(value) { currentBorderColor = value; }
