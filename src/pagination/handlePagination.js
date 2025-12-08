@@ -1,21 +1,59 @@
 // Handle automatic pagination following pseudocode_for_pagination.txt
 
 let isPaginating = false;
+let pendingPagination = false;
+let cancelRequested = false;
+let debounceTimer = null;
 
 export function handlePagination() {
     if (isPaginating) {
-        console.log('Already paginating, skipping...');
-        return;
+        console.log('Pagination in progress → cancel and reschedule latest');
+        // Signal the current run to stop at safe checkpoints
+        cancelRequested = true;
+        pendingPagination = true;
+        // Debounce follow-up scheduling to 1s; latest call wins
+        if (debounceTimer) {
+            clearTimeout(debounceTimer);
+        }
+        debounceTimer = setTimeout(() => {
+            debounceTimer = null;
+            // When current run finishes, the finally block will pick this up
+            // but if it's already finished, trigger directly.
+            if (!isPaginating) {
+                handlePagination();
+            } else {
+                // Ensure the pending flag remains set
+                pendingPagination = true;
+            }
+        }, 1000);
+        return; // Current run will finish quickly and reschedule
     }
 
     console.log('=== Starting pagination ===');
     isPaginating = true;
+    cancelRequested = false;
 
     try {
         repaginate();
     } finally {
         isPaginating = false;
         console.log('=== Pagination complete ===');
+
+        // If another pagination request came in while we were running,
+        // schedule a single follow-up run to capture latest changes.
+        if (pendingPagination) {
+            pendingPagination = false;
+            // Reset cancel flag before next run
+            cancelRequested = false;
+            // Debounced follow-up run (1s)
+            if (debounceTimer) {
+                clearTimeout(debounceTimer);
+            }
+            debounceTimer = setTimeout(() => {
+                debounceTimer = null;
+                handlePagination();
+            }, 1000);
+        }
     }
 }
 
@@ -31,11 +69,19 @@ function repaginate() {
 
     console.log(`Found ${pages.length} pages`);
 
-    // Process each page
-    pages.forEach((page, index) => {
+    // Process each page (cancellable)
+    for (let index = 0; index < pages.length; index++) {
+        if (cancelRequested) {
+            console.log('⟲ Cancellation requested, stopping current repagination');
+            break;
+        }
+        const page = pages[index];
         console.log(`\nProcessing page ${index}...`);
         processPage(page);
-    });
+    }
+
+    // Final cleanup: remove pages that contain no static/relative content
+    removeEmptyPages(pageClasses);
 }
 
 function tryPullFromNextPage(currentPage, currentPageRect, currentPageHeight, currentStaticChildren, effectiveBottom) {
@@ -166,6 +212,10 @@ function processPage(page) {
     const effectivePageHeight = effectiveBottom - effectiveTop;
 
     for (let i = 0; i < updatedChildren.length; i++) {
+        if (cancelRequested) {
+            console.log('    Cancellation requested, exit page processing');
+            return; // Stop processing this page early
+        }
         const child = updatedChildren[i];
         const childRect = child.getBoundingClientRect();
         const childHeight = childRect.height;
@@ -211,6 +261,12 @@ function processPage(page) {
         console.log(`  → Moving to existing next page`);
         // Add elements as first children in next page
         moveElementsToExistingPage(elementsToCut, nextPage);
+
+        // If current page now has no static content, remove it
+        if (isPageWithoutStaticContent(page)) {
+            console.log(`  Removing now-empty current page`);
+            page.remove();
+        }
     } else {
         console.log(`  → Creating new page`);
         // Create new page with same className and insert immediately after
@@ -219,6 +275,12 @@ function processPage(page) {
 
         // Move elements to new page
         elementsToCut.forEach(el => newPage.appendChild(el));
+
+        // If current page now has no static content, remove it
+        if (isPageWithoutStaticContent(page)) {
+            console.log(`  Removing now-empty current page`);
+            page.remove();
+        }
     }
 }
 
@@ -272,4 +334,27 @@ function createNewPage(templatePage) {
     });
 
     return newPage;
+}
+
+function isPageWithoutStaticContent(page) {
+    const staticChildren = Array.from(page.children).filter(child => {
+        const position = window.getComputedStyle(child).position;
+        return position === 'static' || position === 'relative';
+    });
+    return staticChildren.length === 0;
+}
+
+function removeEmptyPages(pageClasses) {
+    const pages = [];
+    pageClasses.forEach(pageClass => {
+        const containers = document.querySelectorAll(`.${pageClass}`);
+        pages.push(...containers);
+    });
+
+    pages.forEach(page => {
+        if (isPageWithoutStaticContent(page)) {
+            console.log('  Cleaning up empty page');
+            page.remove();
+        }
+    });
 }

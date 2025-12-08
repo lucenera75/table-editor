@@ -3,7 +3,9 @@
   "version": "0.0.128",
   "description": "Document editor with table and text formatting capabilities",
   "scripts": {
-    "test": "node run-tests.js"
+    "test": "node run-tests.js",
+    "bump:main": "node scripts/bump-version.js",
+    "setup-hook": "sh scripts/setup-git-hook.sh"
   },
   "devDependencies": {
     "puppeteer": "^21.0.0"
