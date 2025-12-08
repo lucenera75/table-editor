@@ -211,7 +211,17 @@ function initPagination() {
 
     // Set up new pagination observer
     let paginationTimeout;
+    let lastMutationTime = 0;
     const paginationObserver = new MutationObserver(() => {
+        // Prevent rapid-fire pagination cycles
+        const now = Date.now();
+        if (now - lastMutationTime < 100) {
+            // Ignore mutations that happen within 100ms of each other
+            // This prevents pagination from triggering itself in a loop
+            return;
+        }
+        lastMutationTime = now;
+
         // Debounce: wait 1 second after last edit
         clearTimeout(paginationTimeout);
         paginationTimeout = setTimeout(() => {
