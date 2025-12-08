@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoped Editor Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .demo-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .info {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .warning {
+            background-color: #fff3e0;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ff9800;
+        }
+
+        #editable-contents-area {
+            border: 2px solid #4CAF50;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f9fff9;
+            min-height: 200px;
+        }
+
+        table {
+            width: auto;
+            border-collapse: collapse;
+            background: white;
+            margin: 10px 0;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+            position: relative;
+            width: 150px;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Scoped Table Editor Test</h1>
+
+    <div class="demo-section">
+        <div class="info">
+            <strong>✓ ACTIVE ZONE:</strong> The table editor will ONLY work inside the green-bordered area below.
+            Try selecting cells, right-clicking, or double-clicking cells inside the green area.
+        </div>
+
+        <h2>Editable Contents Area (Editor Active Here)</h2>
+        <div id="editable-contents-area">
+            <p contenteditable="true">This is editable text inside the active area. Select some text to see the format menu.</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th><span contenteditable="false">Name</span></th>
+                        <th><span contenteditable="false">Age</span></th>
+                        <th><span contenteditable="false">City</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span contenteditable="false">Alice</span></td>
+                        <td><span contenteditable="false">28</span></td>
+                        <td><span contenteditable="false">New York</span></td>
+                    </tr>
+                    <tr>
+                        <td><span contenteditable="false">Bob</span></td>
+                        <td><span contenteditable="false">32</span></td>
+                        <td><span contenteditable="false">London</span></td>
+                    </tr>
+                    <tr>
+                        <td><span contenteditable="false">Charlie</span></td>
+                        <td><span contenteditable="false">25</span></td>
+                        <td><span contenteditable="false">Tokyo</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p contenteditable="true">More editable text here. Try all the editor features!</p>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <div class="warning">
+            <strong>✗ INACTIVE ZONE:</strong> The table editor will NOT work on this table below.
+            Try clicking cells, right-clicking, or double-clicking - nothing should happen!
+        </div>
+
+        <h2>Outside Editable Area (Editor Inactive Here)</h2>
+        <p>This is regular text outside the editable area.</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Widget</td>
+                    <td>$10</td>
+                    <td>50</td>
+                </tr>
+                <tr>
+                    <td>Gadget</td>
+                    <td>$25</td>
+                    <td>30</td>
+                </tr>
+                <tr>
+                    <td>Doohickey</td>
+                    <td>$15</td>
+                    <td>40</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p>This table should NOT be interactive with the editor!</p>
+    </div>
+
+    <script type="module" src="src/main.js"></script>
+</body>
+</html>
