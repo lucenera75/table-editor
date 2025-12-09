@@ -438,6 +438,8 @@ function createContextMenu() {
         <button id="joinTablesBtn" onclick="joinTables()">Join Tables</button>
         <button onclick="deleteTableFromContext()">Delete Table</button>
         <div class="separator"></div>
+        <button id="toggleNextPageBtn" onclick="toggleNextPage()">Add Page Break</button>
+        <div class="separator"></div>
         <button onclick="copyFormat()">Copy Format</button>
         <button onclick="pasteFormat()">Paste Format</button>
         <div class="separator"></div>
@@ -643,7 +645,8 @@ function createTextFormatMenu() {
         <div style="border-top: 1px solid #ddd; margin-top: 5px; padding-top: 5px;">
             <button onclick="selectParentTag()" style="width: 100%; padding: 5px; font-size: 12px; margin-bottom: 3px;">Select Parent Tag</button>
             <button onclick="clearTextFormat()" style="width: 100%; padding: 5px; font-size: 12px; margin-bottom: 3px;">Clear Format</button>
-            <button onclick="createTableFromMenu()" style="width: 100%; padding: 5px; font-size: 12px;">Create Table</button>
+            <button onclick="createTableFromMenu()" style="width: 100%; padding: 5px; font-size: 12px; margin-bottom: 3px;">Create Table</button>
+            <button id="textMenuToggleNextPageBtn" onclick="toggleNextPage()" style="width: 100%; padding: 5px; font-size: 12px;">Add Page Break</button>
         </div>
     `;
 

@@ -1,6 +1,7 @@
 import { anchorCell, contextMenuTarget, currentCell, selectedCells, setAnchorCell, setContextMenuTarget, setCurrentCell, setSelectedCells } from '../state/variables.js';
 import { clearSelection } from '../selection/clearSelection.js';
 import { updateFormatControls } from '../formatting/updateFormatControls.js';
+import { updateNextPageButton } from '../pagination/toggleNextPage.js';
 
 export function showContextMenu(event, cell) {
     // Only show context menu for cells within editable-contents-area
@@ -10,6 +11,10 @@ export function showContextMenu(event, cell) {
     }
 
     event.preventDefault();
+
+    // Store the target for page-level operations
+    window._contextMenuPageTarget = cell;
+
     setContextMenuTarget(cell);
     // Only change selection if right-clicking on a cell that's not already selected
     if (!selectedCells.includes(cell)) {
@@ -34,6 +39,9 @@ export function showContextMenu(event, cell) {
             joinTablesBtn.style.display = 'none';
         }
     }
+
+    // Update the next-page button state
+    updateNextPageButton(cell);
 
     contextMenu.style.display = 'block';
     contextMenu.style.left = event.pageX + 'px';

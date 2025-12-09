@@ -108,6 +108,8 @@ import { stopResize } from './resize/stopResize.js';
 import { addRowDragHandle } from './drag/addRowDragHandle.js';
 import { addColumnDragHandle } from './drag/addColumnDragHandle.js';
 
+import { toggleNextPage } from './pagination/toggleNextPage.js';
+
 import { toggleMode } from './mode/toggleMode.js';
 
 import { saveUndoStackToStorage } from './undo/saveUndoStackToStorage.js';
@@ -154,7 +156,7 @@ export {
     initializeUndoSystem, saveUndoStackToStorage, captureSnapshot, normalizeHtmlForComparison,
     startSnapshotTimer, stopSnapshotTimer, restoreSnapshot, reinitializeAfterRestore,
     undo, redo,
-    handlePagination,
+    handlePagination, toggleNextPage,
     initPagination
 };
 
@@ -300,6 +302,7 @@ if (typeof window !== 'undefined') {
     window.createDynamicTable = createDynamicTable;
     window.initializeExistingTables = initializeExistingTables;
     window.handlePagination = handlePagination;
+    window.toggleNextPage = toggleNextPage;
     window.initPagination = initPagination;
     window.enableRcPagination = initPagination
 }
@@ -331,7 +334,7 @@ function initialize() {
     setTimeout(() => initPagination(), 2000);
 
     console.log(
-        '%c✨ Document Editor Initialized %c v2.1.12 %c\n%c📝 Modular ES6 • Table Support • Auto Pagination',
+        '%c✨ Document Editor Initialized %c v2.1.13 %c\n%c📝 Modular ES6 • Table Support • Auto Pagination',
         'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: bold; font-size: 16px; padding: 8px 16px; border-radius: 4px 4px 0 0;',
         'background: #f7fafc; color: #667eea; font-weight: bold; font-size: 14px; padding: 8px 12px; border-radius: 0 0 0 0;',
         '',

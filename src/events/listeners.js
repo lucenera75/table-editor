@@ -14,6 +14,7 @@ import { toggleBold } from '../formatting/toggleBold.js';
 import { toggleItalic } from '../formatting/toggleItalic.js';
 import { toggleUnderline } from '../formatting/toggleUnderline.js';
 import { initializeResizeHandles } from '../resize/initializeResizeHandles.js';
+import { updateNextPageButton } from '../pagination/toggleNextPage.js';
 
 export function setupEventListeners() {
     // Prevent mousedown on text format menu from clearing selection
@@ -104,6 +105,9 @@ export function setupEventListeners() {
 
         e.preventDefault();
 
+        // Store the target for page-level operations
+        window._contextMenuPageTarget = e.target;
+
         const selection = window.getSelection();
         if (selection.rangeCount > 0) {
             setSavedSelection(selection.getRangeAt(0).cloneRange());
@@ -111,6 +115,22 @@ export function setupEventListeners() {
 
         const menu = document.getElementById('textFormatMenu');
         if (!menu) return;
+
+        // Update the next-page button state for the text format menu
+        const page = e.target.closest('.portrait-content, .landscape-content');
+        const toggleNextPageBtn = document.getElementById('textMenuToggleNextPageBtn');
+        if (toggleNextPageBtn && page) {
+            const hasNextPage = page.classList.contains('next-page');
+            if (hasNextPage) {
+                toggleNextPageBtn.innerHTML = '<span style="color: #2196F3;">✓</span> Page Break Active';
+                toggleNextPageBtn.style.fontWeight = 'bold';
+                toggleNextPageBtn.style.backgroundColor = '#e3f2fd';
+            } else {
+                toggleNextPageBtn.textContent = 'Add Page Break';
+                toggleNextPageBtn.style.fontWeight = 'normal';
+                toggleNextPageBtn.style.backgroundColor = '';
+            }
+        }
 
         menu.style.display = 'block';
         menu.style.left = e.pageX + 'px';
