@@ -14,7 +14,7 @@ import { toggleBold } from '../formatting/toggleBold.js';
 import { toggleItalic } from '../formatting/toggleItalic.js';
 import { toggleUnderline } from '../formatting/toggleUnderline.js';
 import { initializeResizeHandles } from '../resize/initializeResizeHandles.js';
-import { updateNextPageButton } from '../pagination/toggleNextPage.js';
+import { updateTextMenuNextPageButton } from '../pagination/toggleNextPage.js';
 
 export function setupEventListeners() {
     // Prevent mousedown on text format menu from clearing selection
@@ -118,18 +118,8 @@ export function setupEventListeners() {
 
         // Update the next-page button state for the text format menu
         const page = e.target.closest('.portrait-content, .landscape-content');
-        const toggleNextPageBtn = document.getElementById('textMenuToggleNextPageBtn');
-        if (toggleNextPageBtn && page) {
-            const hasNextPage = page.classList.contains('next-page');
-            if (hasNextPage) {
-                toggleNextPageBtn.innerHTML = '<span style="color: #2196F3;">✓</span> Page Break Active';
-                toggleNextPageBtn.style.fontWeight = 'bold';
-                toggleNextPageBtn.style.backgroundColor = '#e3f2fd';
-            } else {
-                toggleNextPageBtn.textContent = 'Add Page Break';
-                toggleNextPageBtn.style.fontWeight = 'normal';
-                toggleNextPageBtn.style.backgroundColor = '';
-            }
+        if (page) {
+            updateTextMenuNextPageButton(page);
         }
 
         menu.style.display = 'block';

@@ -1,7 +1,11 @@
 export function toggleNextPage() {
-    // Find the context menu to determine what was right-clicked
+    // Check if either context menu or text format menu is visible
     const contextMenu = document.getElementById('contextMenu');
-    if (!contextMenu || contextMenu.style.display === 'none') {
+    const textFormatMenu = document.getElementById('textFormatMenu');
+    const isContextMenuVisible = contextMenu && contextMenu.style.display !== 'none';
+    const isTextMenuVisible = textFormatMenu && textFormatMenu.style.display !== 'none';
+
+    if (!isContextMenuVisible && !isTextMenuVisible) {
         return;
     }
 
@@ -34,8 +38,9 @@ export function toggleNextPage() {
         console.log('Added next-page class to page');
     }
 
-    // Update the button appearance immediately
+    // Update the button appearance immediately for both menus
     updateNextPageButton(page);
+    updateTextMenuNextPageButton(page);
 
     // Trigger pagination to adjust content flow
     setTimeout(() => {
@@ -50,6 +55,25 @@ export function updateNextPageButton(targetElement) {
                  (targetElement?.classList.contains('portrait-content') || targetElement?.classList.contains('landscape-content') ? targetElement : null);
 
     const toggleNextPageBtn = document.getElementById('toggleNextPageBtn');
+    if (toggleNextPageBtn && page) {
+        const hasNextPage = page.classList.contains('next-page');
+        if (hasNextPage) {
+            toggleNextPageBtn.innerHTML = '<span style="color: #2196F3;">✓</span> Page Break Active';
+            toggleNextPageBtn.style.fontWeight = 'bold';
+            toggleNextPageBtn.style.backgroundColor = '#e3f2fd';
+        } else {
+            toggleNextPageBtn.textContent = 'Add Page Break';
+            toggleNextPageBtn.style.fontWeight = 'normal';
+            toggleNextPageBtn.style.backgroundColor = '';
+        }
+    }
+}
+
+export function updateTextMenuNextPageButton(targetElement) {
+    const page = targetElement?.closest('.portrait-content, .landscape-content') ||
+                 (targetElement?.classList.contains('portrait-content') || targetElement?.classList.contains('landscape-content') ? targetElement : null);
+
+    const toggleNextPageBtn = document.getElementById('textMenuToggleNextPageBtn');
     if (toggleNextPageBtn && page) {
         const hasNextPage = page.classList.contains('next-page');
         if (hasNextPage) {
