@@ -96,6 +96,12 @@ function tryPullFromNextPage(currentPage, currentPageRect, currentPageHeight, cu
         return; // No next page to pull from
     }
 
+    // Don't pull from pages with "next-page" class - they are hard page breaks
+    if (nextPage.classList.contains('next-page')) {
+        console.log(`  Next page has 'next-page' class, cannot pull from it`);
+        return;
+    }
+
     // Get static children from next page
     const nextStaticChildren = Array.from(nextPage.children).filter(child => {
         const position = window.getComputedStyle(child).position;
@@ -257,7 +263,10 @@ function processPage(page) {
         (page.classList.contains('landscape-content') && nextPage.classList.contains('landscape-content'))
     );
 
-    if (hasMatchingNextPage) {
+    // Check if next page has "next-page" class (hard page break)
+    const nextPageIsHardBreak = nextPage && nextPage.classList.contains('next-page');
+
+    if (hasMatchingNextPage && !nextPageIsHardBreak) {
         console.log(`  → Moving to existing next page`);
         // Add elements as first children in next page
         moveElementsToExistingPage(elementsToCut, nextPage);
@@ -268,7 +277,11 @@ function processPage(page) {
             page.remove();
         }
     } else {
-        console.log(`  → Creating new page`);
+        if (nextPageIsHardBreak) {
+            console.log(`  → Next page has 'next-page' class, creating new page instead`);
+        } else {
+            console.log(`  → Creating new page`);
+        }
         // Create new page with same className and insert immediately after
         const newPage = createNewPage(page);
         page.after(newPage);
@@ -309,8 +322,10 @@ function moveElementsToExistingPage(elements, targetPage) {
 function createNewPage(templatePage) {
     const newPage = document.createElement('div');
 
-    // Copy all classes from template
-    newPage.className = templatePage.className;
+    // Copy all classes from template EXCEPT "next-page"
+    // "next-page" is a hard page break marker and should not be auto-copied
+    const classes = Array.from(templatePage.classList).filter(cls => cls !== 'next-page');
+    newPage.className = classes.join(' ');
 
     // Copy attributes
     if (templatePage.hasAttribute('contenteditable')) {
