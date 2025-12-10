@@ -121,6 +121,7 @@ import { restoreSnapshot } from './undo/restoreSnapshot.js';
 import { reinitializeAfterRestore } from './undo/reinitializeAfterRestore.js';
 import { undo } from './undo/undo.js';
 import { redo } from './undo/redo.js';
+import { enableRcPagination } from './pagination/rcPagination.js';
 
 // Export all functions
 export {
@@ -203,6 +204,7 @@ export function createDynamicTable(rows, cols) {
 // Helper function to initialize pagination for dynamically loaded content
 function initPagination() {
     initializeExistingTables()
+    enableRcPagination();
     // Run pagination immediately
     handlePagination();
 
@@ -334,7 +336,7 @@ function initialize() {
     setTimeout(() => initPagination(), 2000);
 
     console.log(
-        '%c✨ Document Editor Initialized %c v2.1.14 %c\n%c📝 Modular ES6 • Table Support • Auto Pagination',
+        '%c✨ Document Editor Initialized %c v2.1.15 %c\n%c📝 Modular ES6 • Table Support • Auto Pagination',
         'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: bold; font-size: 16px; padding: 8px 16px; border-radius: 4px 4px 0 0;',
         'background: #f7fafc; color: #667eea; font-weight: bold; font-size: 14px; padding: 8px 12px; border-radius: 0 0 0 0;',
         '',
