@@ -133,3 +133,4 @@ function enableRcPagination() {
 }
 
 window.enableRcPagination = enableRcPagination;
+export { enableRcPagination };
