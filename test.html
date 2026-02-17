@@ -5,10 +5,408 @@
                 <head>
                 <meta charset="UTF-8">
                 <title>my fucking test</title>
-                <link
-                    rel="stylesheet"
-                    type="text/css"
-                    href="https://paueappsa.blob.core.windows.net/rc-report-resources/rcReportStyle.css"/>
+.rc-body {
+    font-family: "Century Gothic", sans-serif;
+    width: 210mm;
+    height: 297mm;
+    margin: 0 auto;
+    padding-top: 2.2cm;
+    padding-bottom: 0.7cm;
+    padding-left: 2cm;
+    padding-right: 2.2cm;
+    box-sizing: border-box;
+    position: relative;
+    font-size: 10pt;
+    background-color: white;
+    line-height: 1.4;
+    page: portrait;
+}
+
+.rc-body-landscape {
+    font-family: "Century Gothic", sans-serif;
+    width: 297mm;
+    height: 210mm;
+    margin: 0 auto;
+    padding-top: 2.2cm;
+    padding-bottom: 0.7cm;
+    padding-left: 2cm;
+    padding-right: 2.2cm;
+    box-sizing: border-box;
+    position: relative;
+    font-size: 10pt;
+    background-color: white;
+    line-height: 1.4;
+    page: landscape;
+}
+
+@page portrait {
+    size: A4 portrait;
+}
+@page landscape {
+    size: A4 landscape;
+}
+
+.rc-logo {
+    text-align: right;
+    margin-bottom: 180pt;
+}
+.rc-logo img {
+    width: 7.99cm;
+    height: 1.33cm;
+}
+.rc-header-logo {
+    text-align: right;
+    margin-bottom: 20pt;
+    position: absolute;
+    top: 0.7cm;
+    right: 0.7cm;
+}
+.rc-header-logo img {
+    width: 3.72cm;
+    height: 0.62cm;
+}
+.rc-title {
+    font-size: 28pt;
+    color: #008aba;
+    font-family: Rockwell, serif;
+}
+
+.rc-je-statement-title {
+    font-size: 18pt;
+    color: #008aba;
+    font-family: Rockwell, serif;
+    margin-bottom: -0.5em;
+    margin-top: -0.5em;
+}
+.rc-top-border {
+    height: 1px;
+    background-color: #008aba;
+    width: 100%;
+    margin-bottom: 10px;
+}
+.rc-bottom-border {
+    height: 1px;
+    background-color: #008aba;
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 24pt;
+}
+.rc-subtitle {
+    font-size: 21pt;
+    color: gray;
+    font-family: Rockwell, serif;
+}
+.rc-prepared {
+    margin-top: 150pt;
+    font-size: 12pt;
+    color: gray;
+    margin-bottom: 2px;
+}
+.rc-author {
+    font-size: 10pt;
+}
+.rc-author p {
+    margin: 2px 0;
+}
+.rc-confidential {
+    font-weight: bold;
+    margin-top: 20px;
+    font-size: 10pt;
+}
+.rc-indentation {
+    margin-left: 2.5cm;
+}
+.rc-page-break {
+    page-break-before: always;
+}
+.rc-footer-private-confidential {
+    font-size: 8pt;
+    color: gray;
+    border-top: 1px solid black;
+    border-color: gray;
+    padding-top: 10px;
+    position: absolute;
+    bottom: 5mm;
+    left: 10mm;
+    right: 10mm;
+}
+.rc-footer-general {
+    font-size: 8pt;
+    color: gray;
+    padding-top: 10px;
+    position: absolute;
+    bottom: 5mm;
+    left: 10mm;
+    right: 10mm;
+    display: flex;
+    justify-content: space-between;
+}
+.rc-list-appendix {
+    font-size: 7pt;
+    color: gray;
+}
+
+.rc-bullet-point {
+    width: 1px;
+    height: 1px;
+    border-radius: 5px;
+    border: 3px solid #008aba;
+    background-color: #008aba;
+    display: inline-block;
+    margin-right: 5px;
+    position: absolute;
+    top: 9px;
+}
+
+.rc-bullet-point-table {
+    border-collapse: collapse;
+}
+
+.rc-bullet-point-table td {
+    padding: 0;
+    margin-right: 5px;
+}
+
+.rc-header-logo {
+    text-align: right;
+    margin-bottom: 20pt;
+    position: absolute;
+    top: 0.7cm;
+    right: 0.7cm;
+}
+.rc-header-logo img {
+    width: 3.72cm;
+    height: 0.62cm;
+}
+.rc-header2 {
+    font-size: 12pt;
+    color: #008aba;
+}
+.rc-header3 {
+    font-size: 10pt;
+    font-weight: bold;
+    color: black;
+    margin-bottom: 5px;
+}
+.rc-header4 {
+    font-size: 12pt;
+}
+.rc-bold {
+    font-weight: bold;
+}
+.rc-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    text-align: left;
+}
+.rc-table th,
+.rc-table td {
+    border: 2px solid #6b6e74;
+}
+.rc-table th {
+    background-color: #008aba;
+    color: white;
+    text-align: left;
+    padding: 5px;
+}
+.rc-table td {
+    padding: 5px;
+    text-align: left;
+    font-size: 9pt;
+    border: 2px solid #6b6e74;
+}
+
+.rc-table-multi {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    text-align: left;
+}
+
+.rc-table-multi th,
+.rc-table-multi td {
+    border: 2px solid #6b6e74;
+}
+.rc-table-multi th {
+    background-color: #008aba;
+    color: white;
+    text-align: left;
+    padding: 5px;
+}
+.rc-table-multi td {
+    padding: 5px;
+    text-align: left;
+    font-size: 8pt;
+}
+.rc-table-multi td.rc-multi-remtype {
+    text-align: center;
+}
+.rc-table .rc-gray-bg {
+    background-color: #d3d3d3;
+}
+.rc-table .rc-rem-range {
+    text-align: center;
+}
+.rc-table-no-header-bg th {
+    background-color: transparent;
+    color: black;
+}
+.rc-highlight {
+    color: black;
+    background-color: yellow;
+}
+
+.rc-eval-summary-header {
+    background-color: #008aba;
+    color: white;
+    text-align: left;
+    padding: 5px;
+    writing-mode: sideways-lr;
+    width: 1.32cm;
+    height: 3.3cm;
+}
+
+.rc-incumbent-header {
+    text-align: center;
+    padding: 5px;
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+    height: 1.86cm;
+}
+
+.rc-multi-market-header {
+    padding: 5px;
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+}
+
+.rc-eval-summary-value td {
+    padding: 10px;
+    text-align: center;
+    height: 5.3mm;
+}
+
+.rc-market-section {
+    font-size: 9pt;
+    margin-top: -0.5em;
+}
+.rc-market-header {
+    font-weight: bold;
+}
+.rc-market-header-detail {
+    margin-top: -0.9em;
+    margin-bottom: -0.1em;
+    line-height: 1.4;
+}
+.rc-foot-note-market-data {
+    font-size: 7pt;
+    margin-top: -0.5px;
+}
+
+.rc-single-md-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 2px;
+}
+.rc-single-md-table,
+.rc-single-md-table th,
+.rc-single-md-table td {
+    border: 2px solid gray;
+}
+.rc-single-md-table th {
+    background-color: #008aba;
+    color: white;
+    text-align: center;
+    padding: 3px;
+    height: 20px;
+}
+.rc-single-md-table td {
+    text-align: center;
+    padding: 1px;
+    height: 20px;
+}
+
+.rc-gray-header2 {
+    font-size: 12pt;
+    color: #5f6163;
+    margin-bottom: -0.8em;
+}
+
+.rc-incentive-stats-type {
+    background-color: #a5a7ac;
+    font-weight: bold;
+    text-align: center;
+    color: black;
+}
+
+.rc-table-line-height {
+    line-height: 1;
+}
+.rc-p-line-height {
+    line-height: 1.4;
+}
+.rc-list {
+    list-style-position: inside;
+    padding-left: 0;
+}
+.rc-list > li {
+    text-indent: -1.5em;
+    padding-left: 1.5em;
+}
+.rc-list > li::marker {
+    color: #008aba;
+}
+
+.market-comparison-list > li {
+    margin-bottom: 12px;
+}
+.market-comparison-list > li:last-child {
+    margin-bottom: 0;
+}
+
+.rc-factor-subtitle {
+    background-color: #bfbfbf;
+    font-style: italic;
+    font-size: 9pt;
+    line-height: 1;
+    padding: 0px;
+}
+
+.rc-factor-value {
+    text-align: center;
+    font-size: 8pt;
+    line-height: 1.2;
+    width: 2.69cm;
+    height: 1.4cm;
+}
+
+.rc-factor-desc {
+    font-size: 8pt;
+    line-height: 1.2;
+    width: 14.37cm;
+}
+
+.rc-no-overFlow {
+    white-space: nowrap;
+}
+
+.rc-light-gray-bg {
+    background-color: #e5e5e6;
+}
+.rc-light-blue-bg {
+    background-color: #9bdbf0;
+}
+.rc-dark-gray-bg {
+    background-color: #bfbfbf;
+}
+
+.rc-multi-remtype {
+    background-color: #bfbfbf;
+    vertical-align: bottom;
+}
+
+
                 </head>
                 <body>
                 <div class="rc-body print-margin-visual portrait-content next-page" contenteditable="true" data-orientation="portrait">
