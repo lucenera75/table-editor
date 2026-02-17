@@ -10,6 +10,16 @@
                     type="text/css"
                     href="https://paueappsa.blob.core.windows.net/rc-report-resources/rcReportStyle.css"/>
                 </head>
+                <style>
+                    @media print {
+  td[style*="background"], th[style*="background"] {
+    border: 2px solid #000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+}
+                </style>
                 <body>
                 <div class="rc-body print-margin-visual portrait-content next-page" contenteditable="true" data-orientation="portrait">
             <div class="rc-header-logo">
@@ -379,13 +389,13 @@
             </div>
         </div>
     <script>
-        document.querySelectorAll('td, th').forEach(cell => {
-            console.log(window.getComputedStyle(cell).backgroundColor, cell, cell.style.backgroundColor, cell.style.borderWidth, cell.style.borderColor, cell.style.borderStyle, "---   ---");
-            const bg = window.getComputedStyle(cell).backgroundColor;
-            if (bg !== 'rgba(0, 0, 0, 0)' && bg !== 'rgb(255, 255, 255)') {
-                cell.style.borderWidth = parseInt(window.getComputedStyle(cell).borderWidth) + 1 + 'px';
-                cell.innerHTML += "--"
-            }
-        });
+        // document.querySelectorAll('td, th').forEach(cell => {
+        //     console.log(window.getComputedStyle(cell).backgroundColor, cell, cell.style.backgroundColor, cell.style.borderWidth, cell.style.borderColor, cell.style.borderStyle, "---   ---");
+        //     const bg = window.getComputedStyle(cell).backgroundColor;
+        //     if (bg !== 'rgba(0, 0, 0, 0)' && bg !== 'rgb(255, 255, 255)') {
+        //         cell.style.borderWidth = parseInt(window.getComputedStyle(cell).borderWidth) + 1 + 'px';
+        //         cell.innerHTML += "--"
+        //     }
+        // });
     </script>
     </body></html>
