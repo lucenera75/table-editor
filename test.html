@@ -384,6 +384,7 @@
             const bg = window.getComputedStyle(cell).backgroundColor;
             if (bg !== 'rgba(0, 0, 0, 0)' && bg !== 'rgb(255, 255, 255)') {
                 cell.style.borderWidth = parseInt(window.getComputedStyle(cell).borderWidth) + 1 + 'px';
+                cell.innerHTML += "--"
             }
         });
     </script>
